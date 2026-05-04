@@ -2,6 +2,12 @@
 
 genscale is a Next.js app for visualizing scale and chord-tone labels on a guitar fretboard and exporting the result as SVG.
 
+Routes:
+
+- `/en`: English UI
+- `/ja`: Japanese UI
+- `/`: redirects to `/en`
+
 ## Development
 
 ```bash

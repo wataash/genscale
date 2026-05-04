@@ -1,0 +1,41 @@
+import { notFound } from "next/navigation";
+import GenscaleApp from "../genscale-app";
+
+const LOCALES = ["en", "ja"] as const;
+type Locale = (typeof LOCALES)[number];
+
+type PageProps = {
+  params: Promise<{
+    locale: string;
+  }>;
+};
+
+function isLocale(locale: string): locale is Locale {
+  return LOCALES.includes(locale as Locale);
+}
+
+export function generateStaticParams() {
+  return LOCALES.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { locale } = await params;
+
+  return {
+    title: "genscale",
+    description:
+      locale === "ja"
+        ? "ギター指板スケールSVGジェネレーター"
+        : "Interactive guitar fretboard scale SVG generator",
+  };
+}
+
+export default async function LocalePage({ params }: PageProps) {
+  const { locale } = await params;
+
+  if (!isLocale(locale)) {
+    notFound();
+  }
+
+  return <GenscaleApp locale={locale} />;
+}
