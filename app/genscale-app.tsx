@@ -380,8 +380,10 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   );
   const stringYs = board.noteIndices.map((_, i) => labelH + CANVAS.stringGap * i);
   const yMid = (stringYs[0] + stringYs[stringYs.length - 1]) / 2;
-  const ySpread = stringYs[1] - stringYs[0] || CANVAS.stringGap;
   const tokenValid = activeTokens.length === 12;
+  const inlayH = Math.max(34, Math.min(boardH * 0.42, 82));
+  const inlayW = 8;
+  const octaveInlayW = 13;
   const currentSettingEditorText = settingsText({
     key,
     scale,
@@ -637,30 +639,27 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   />
                 ))}
                 {[3, 5, 7, 9, 15, 17, 19, 21].map((fret) => (
-                  <circle
+                  <rect
                     key={`inlay-${fret}`}
-                    cx={(fretXs[fret - 1] + fretXs[fret]) / 2}
-                    cy={yMid}
-                    r="7"
+                    x={(fretXs[fret - 1] + fretXs[fret]) / 2 - inlayW / 2}
+                    y={yMid - inlayH / 2}
+                    width={inlayW}
+                    height={inlayH}
+                    rx="2"
                     fill="#7c8f85"
                   />
                 ))}
-                {[12, 24].flatMap((fret) => [
-                  <circle
-                    key={`inlay-${fret}-a`}
-                    cx={(fretXs[fret - 1] + fretXs[fret]) / 2}
-                    cy={yMid - ySpread}
-                    r="7"
+                {[12, 24].map((fret) => (
+                  <rect
+                    key={`inlay-${fret}`}
+                    x={(fretXs[fret - 1] + fretXs[fret]) / 2 - octaveInlayW / 2}
+                    y={yMid - inlayH / 2}
+                    width={octaveInlayW}
+                    height={inlayH}
+                    rx="2"
                     fill="#7c8f85"
-                  />,
-                  <circle
-                    key={`inlay-${fret}-b`}
-                    cx={(fretXs[fret - 1] + fretXs[fret]) / 2}
-                    cy={yMid + ySpread}
-                    r="7"
-                    fill="#7c8f85"
-                  />,
-                ])}
+                  />
+                ))}
                 {board.noteIndices.map((stringNoteIndices, stringIndex) =>
                   stringNoteIndices.map((fretNoteIndex, noteIndex) => {
                     const offset = (fretNoteIndex - rootKey + 12) % 12;
