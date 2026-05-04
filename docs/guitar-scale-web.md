@@ -243,4 +243,15 @@ L - L / 2^(n/12)
 
 アプリ本体は [app/genscale-app.tsx](/home/wsh/d/s/guitar_board/app/genscale-app.tsx) です。状態管理はReactの `useState`、指板の静的データ生成は `useMemo` を使います。サーバーAPIは使わず、すべてブラウザ内で描画します。
 
+スケール定義、チューニング、設定JSON、指板計算などの純粋なロジックは [lib/genscale](/home/wsh/d/s/guitar_board/lib/genscale) に分割します。
+
+- [lib/genscale/scales.ts](/home/wsh/d/s/guitar_board/lib/genscale/scales.ts): スケールプリセット、表示名、Notesとの照合
+- [lib/genscale/tuning.ts](/home/wsh/d/s/guitar_board/lib/genscale/tuning.ts): チューニングプリセット、チューニング文字列の解析
+- [lib/genscale/notes.ts](/home/wsh/d/s/guitar_board/lib/genscale/notes.ts): 音名、異名同音、Notesラベル、丸の色
+- [lib/genscale/settings.ts](/home/wsh/d/s/guitar_board/lib/genscale/settings.ts): Settings editor のJSON読み書き、URL用settings文字列
+- [lib/genscale/fretboard.ts](/home/wsh/d/s/guitar_board/lib/genscale/fretboard.ts): フレット位置、指板データ、SVG描画用の寸法定数
+- [lib/genscale/i18n.ts](/home/wsh/d/s/guitar_board/lib/genscale/i18n.ts): 英語/日本語UI文言
+- [lib/genscale/svg.ts](/home/wsh/d/s/guitar_board/lib/genscale/svg.ts): SVG文字列化
+- [lib/genscale/types.ts](/home/wsh/d/s/guitar_board/lib/genscale/types.ts): 共有型
+
 E2Eテストは [e2e/genscale.spec.ts](/home/wsh/d/s/guitar_board/e2e/genscale.spec.ts) にあります。
