@@ -85,17 +85,17 @@ test("syncs the settings editor with the controls", async ({ page }) => {
         tuning: ["G3", "D3", "A2", "E2"],
         notes: [
           "1",
-          "___",
-          "___",
+          "...",
+          "...",
           "♭3",
-          "___",
-          "___",
-          "___",
+          "...",
+          "...",
+          "...",
           "5",
-          "___",
-          "___",
+          "...",
+          "...",
           "♭7",
-          "___",
+          "...",
         ],
       },
       null,
@@ -107,7 +107,7 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   await expect(page.getByRole("combobox", { name: "Scale" })).toHaveValue("M7");
   await expect(page.getByLabel("Tuning")).toHaveValue("G3\nD3\nA2\nE2");
   await expect(page.getByLabel("Notes")).toHaveValue(
-    "1\n___\n___\n♭3\n___\n___\n___\n5\n___\n___\n♭7\n___",
+    "1\n...\n...\n♭3\n...\n...\n...\n5\n...\n...\n♭7\n...",
   );
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
   await expect(page.getByLabel("D Major 7 guitar scale fretboard")).toBeVisible();
@@ -168,23 +168,23 @@ test("shows the 24th fret when the browser is wide enough", async ({ page }) => 
   expect(label24Box.x + label24Box.width).toBeLessThanOrEqual(1600);
 });
 
-test("supports editable underscore tokens for out-of-scale and hidden labels", async ({
+test("supports editable dot tokens for out-of-scale and hidden labels", async ({
   page,
 }) => {
   await page.goto("/en");
 
   await expect(page.getByLabel("Notes")).toHaveValue(
-    "1\n___♭9\n___9\n♭3\n___3\n___11\n___♯11\n5\n___♭13\n___13\n♭7\n___Δ7",
+    "1\n...♭9\n...9\n♭3\n...3\n...11\n...♯11\n5\n...♭13\n...13\n♭7\n...Δ7",
   );
   const notes = page.getByLabel("Notes");
   await notes.click();
   await notes.press("Control+A");
   await notes.press("Backspace");
   await expect(notes).toHaveValue("");
-  await notes.fill("1\n___\n___\n♭3\n___\n___\n___\n5\n___\n___\n♭7\n___");
+  await notes.fill("1\n...\n...\n♭3\n...\n...\n...\n5\n...\n...\n♭7\n...");
 
   await expect(notes).toHaveValue(
-    "1\n___\n___\n♭3\n___\n___\n___\n5\n___\n___\n♭7\n___",
+    "1\n...\n...\n♭3\n...\n...\n...\n5\n...\n...\n♭7\n...",
   );
   await expect(page.getByLabel("A Minor 7 guitar scale fretboard")).toBeVisible();
   await expect(page.locator("svg text").filter({ hasText: "♭9" })).toHaveCount(0);
