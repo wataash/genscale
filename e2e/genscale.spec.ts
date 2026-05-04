@@ -127,6 +127,48 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   await expect(page.getByLabel("D Custom guitar scale fretboard")).toBeVisible();
 });
 
+test("copies and restores settings through the URL", async ({ page }) => {
+  await page.goto("/en");
+
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          (window as Window & { copiedSettingsUrl?: string }).copiedSettingsUrl =
+            text;
+        },
+      },
+    });
+  });
+
+  await page.getByRole("combobox", { name: "Key" }).selectOption("D");
+  await page.getByRole("combobox", { name: "Scale" }).selectOption("alt");
+  await page.getByRole("button", {
+    name: "Copy URL with this settings (experimental)",
+  }).click();
+
+  const copiedUrl = await page.evaluate(
+    () => (window as Window & { copiedSettingsUrl?: string }).copiedSettingsUrl,
+  );
+  expect(copiedUrl).toBeTruthy();
+  expect(copiedUrl).toContain('?settings={"key":"D"');
+  expect(copiedUrl).not.toContain("%7B");
+  expect(copiedUrl).not.toContain("%22");
+  const settingsParam = new URL(copiedUrl ?? "").searchParams.get("settings");
+  expect(settingsParam).toBeTruthy();
+
+  await page.goto(copiedUrl ?? "/en");
+
+  await expect(page.getByRole("combobox", { name: "Key" })).toHaveValue("D");
+  await expect(page.getByRole("combobox", { name: "Scale" })).toHaveValue(
+    "alt",
+  );
+  await expect(
+    page.getByLabel("D Altered guitar scale fretboard"),
+  ).toBeVisible();
+});
+
 test("keeps the fretboard above the controls at small and large widths", async ({
   page,
 }) => {

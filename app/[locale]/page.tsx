@@ -11,6 +11,9 @@ type PageProps = {
   params: Promise<{
     locale: string;
   }>;
+  searchParams?: Promise<{
+    settings?: string | string[];
+  }>;
 };
 
 function isLocale(locale: string): locale is Locale {
@@ -33,12 +36,16 @@ export async function generateMetadata({ params }: PageProps) {
   };
 }
 
-export default async function LocalePage({ params }: PageProps) {
+export default async function LocalePage({ params, searchParams }: PageProps) {
   const { locale } = await params;
+  const query = await searchParams;
 
   if (!isLocale(locale)) {
     notFound();
   }
 
-  return <GenscaleApp locale={locale} />;
+  const settings =
+    typeof query?.settings === "string" ? query.settings : undefined;
+
+  return <GenscaleApp initialSettingsText={settings} locale={locale} />;
 }

@@ -40,6 +40,7 @@ type Fretboard = {
 type Locale = "en" | "ja";
 
 type GenscaleAppProps = {
+  initialSettingsText?: string;
   locale: Locale;
 };
 
@@ -69,6 +70,7 @@ const TRANSLATIONS: Record<
     customTuning: string;
     notes: string;
     settingEditor: string;
+    copySettingsUrl: string;
     tokenError: string;
     tuningError: string;
     settingError: string;
@@ -86,6 +88,7 @@ const TRANSLATIONS: Record<
     customTuning: "Custom",
     notes: "Notes",
     settingEditor: "Settings editor",
+    copySettingsUrl: "Copy URL with this settings (experimental)",
     tokenError: "Notes must contain exactly 12 line-separated tokens.",
     tuningError: "Tuning must contain one note with octave per line.",
     settingError: "Settings editor must contain valid genscale JSON.",
@@ -102,6 +105,7 @@ const TRANSLATIONS: Record<
     customTuning: "カスタム",
     notes: "Notes",
     settingEditor: "設定エディタ",
+    copySettingsUrl: "この設定のURLをコピー (experimental)",
     tokenError: "Notes は行区切りで12個にしてください。",
     tuningError: "チューニングは1行に1つ、音名とオクターブで指定してください。",
     settingError: "設定エディタには有効な genscale JSON を入力してください。",
@@ -467,6 +471,14 @@ function settingsText(settings: AppSettings): string {
   return JSON.stringify(settings, null, 2);
 }
 
+function readableSettingsParam(settings: AppSettings): string {
+  return JSON.stringify(settings).replace(
+    /[%&#+\s]/g,
+    (character) =>
+      `%${character.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`,
+  );
+}
+
 function readStringArray(value: unknown): string[] | null {
   if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
     return null;
@@ -508,14 +520,30 @@ function serializeSvg(svg: SVGSVGElement | null): string {
   return new XMLSerializer().serializeToString(svg);
 }
 
-export default function GenscaleApp({ locale }: GenscaleAppProps) {
+export default function GenscaleApp({
+  initialSettingsText,
+  locale,
+}: GenscaleAppProps) {
   const t = TRANSLATIONS[locale];
-  const [key, setKey] = useState("A");
-  const [scale, setScale] = useState("m7");
-  const [tuning, setTuning] = useState(DEFAULT_TUNING);
-  const [noteText, setNoteText] = useState(noteTokensText("m7"));
-  const [settingEditorText, setSettingEditorText] = useState("");
-  const [settingValid, setSettingValid] = useState(true);
+  const initialSettings = initialSettingsText
+    ? parseSettingsText(initialSettingsText)
+    : null;
+  const [key, setKey] = useState(initialSettings?.key ?? "A");
+  const [scale, setScale] = useState(
+    initialSettings ? scaleFromNotes(initialSettings.notes) : "m7",
+  );
+  const [tuning, setTuning] = useState(
+    initialSettings?.tuning.join("\n") ?? DEFAULT_TUNING,
+  );
+  const [noteText, setNoteText] = useState(
+    initialSettings?.notes.join("\n") ?? noteTokensText("m7"),
+  );
+  const [settingEditorText, setSettingEditorText] = useState(
+    initialSettingsText ?? "",
+  );
+  const [settingValid, setSettingValid] = useState(
+    initialSettingsText ? Boolean(initialSettings) : true,
+  );
   const parsedTuning = useMemo(() => parseTuning(tuning), [tuning]);
   const board = useMemo(
     () => buildFretboard(parsedTuning.noteIndices),
@@ -556,11 +584,12 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
     "custom";
   const currentScaleDisplayName =
     scale === CUSTOM_SCALE ? t.customScale : scaleDisplayName(scale, locale);
-  const currentSettingEditorText = settingsText({
+  const currentSettings = {
     key,
     tuning: linesFromText(tuning),
     notes: linesFromText(noteText),
-  });
+  };
+  const currentSettingEditorText = settingsText(currentSettings);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -575,6 +604,12 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
     link.download = `${key}-${scale}.svg`;
     link.click();
     URL.revokeObjectURL(href);
+  }
+
+  function copySettingsUrl() {
+    const settingsParam = readableSettingsParam(currentSettings);
+    const url = `${window.location.origin}${window.location.pathname}?settings=${settingsParam}${window.location.hash}`;
+    navigator.clipboard.writeText(url);
   }
 
   function applySettingEditor(text: string) {
@@ -784,6 +819,14 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   {t.settingError}
                 </p>
               ) : null}
+
+              <button
+                className="w-fit rounded-md bg-[#2d4f47] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#213d37]"
+                type="button"
+                onClick={copySettingsUrl}
+              >
+                {t.copySettingsUrl}
+              </button>
             </div>
           </aside>
 
