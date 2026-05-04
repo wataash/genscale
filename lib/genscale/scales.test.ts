@@ -17,6 +17,25 @@ describe("scale presets", () => {
     expect(SCALE_NAMES.slice(0, 6)).toEqual(["M", "6", "69", "7", "M7", "b9"]);
   });
 
+  test("uses the dotted preset note visibility convention", () => {
+    for (const scale of SCALE_NAMES) {
+      for (const token of scaleTokens(scale)) {
+        if (token === "1" || token.startsWith("...")) {
+          continue;
+        }
+
+        const note = token.replace(/^\.+/, "");
+
+        if (note === "5") {
+          expect(token).toBe(".5");
+          continue;
+        }
+
+        expect(token.startsWith("..")).toBe(true);
+      }
+    }
+  });
+
   test("shows formal names while keeping compact identifiers", () => {
     expect(scaleDisplayName("alt", "en")).toBe("Altered");
     expect(scaleDisplayName("alt", "ja")).toBe("オルタード");

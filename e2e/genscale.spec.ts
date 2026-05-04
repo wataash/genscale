@@ -246,7 +246,7 @@ test("supports editable dot tokens for out-of-scale and hidden labels", async ({
   await page.goto("/en");
 
   await expect(page.getByLabel("Notes")).toHaveValue(
-    "1\n...♭9\n...9\n♭3\n...3\n...11\n...♯11\n5\n...♭13\n...13\n♭7\n...Δ7",
+    "1\n...♭9\n...9\n..♭3\n...3\n...11\n...♯11\n.5\n...♭13\n...13\n..♭7\n...Δ7",
   );
   const notes = page.getByLabel("Notes");
   await notes.click();
