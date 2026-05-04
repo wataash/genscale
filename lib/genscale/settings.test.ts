@@ -27,7 +27,7 @@ const settings: AppSettings = {
     "♯13",
     "...Δ7",
   ],
-  noteGrayLevels: [20, 33, 89, 97],
+  noteGrayLevels: [20, 40, 75, 100],
 };
 
 describe("settingsText", () => {
@@ -74,7 +74,7 @@ describe("parseSettingsText", () => {
     expect(parseSettingsText(JSON.stringify({ ...settings, key: "H" }))).toBeNull();
     expect(parseSettingsText(JSON.stringify({ key: "A", notes: [] }))).toBeNull();
     expect(
-      parseSettingsText(JSON.stringify({ ...settings, noteGrayLevels: [20, 33] })),
+      parseSettingsText(JSON.stringify({ ...settings, noteGrayLevels: [20, 40] })),
     ).toBeNull();
   });
 });

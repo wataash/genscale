@@ -80,7 +80,7 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   });
   expect(settings).not.toHaveProperty("scale");
   expect(settings.tuning).toEqual(["E4", "B3", "G3", "D3", "A2", "E2"]);
-  expect(settings.noteGrayLevels).toEqual([20, 33, 89, 97]);
+  expect(settings.noteGrayLevels).toEqual([20, 40, 75, 100]);
 
   await page.getByRole("combobox", { name: "Key" }).selectOption("C");
   await page.getByRole("combobox", { name: "Scale" }).selectOption("alt");
@@ -98,7 +98,7 @@ test("syncs the settings editor with the controls", async ({ page }) => {
     key: "C",
   });
   expect(settings).not.toHaveProperty("scale");
-  expect(settings.noteGrayLevels).toEqual([30, 33, 89, 97]);
+  expect(settings.noteGrayLevels).toEqual([30, 40, 75, 100]);
 
   await settingEditor.fill(
     JSON.stringify(
@@ -268,7 +268,7 @@ test("supports editable dot tokens for out-of-scale and hidden labels", async ({
 test("adjusts note grayscale levels", async ({ page }) => {
   await page.goto("/en");
 
-  await expect(page.locator('svg circle[fill="#343434"]')).not.toHaveCount(0);
+  await expect(page.locator('svg circle[fill="#333333"]')).not.toHaveCount(0);
   const noteSlider = page.getByRole("slider", {
     name: "NOTE grayscale",
     exact: true,

@@ -44,7 +44,7 @@ export const ENHARMONICS: Record<string, NoteName> = {
 
 export const KEY_NAMES = Object.keys(ENHARMONICS);
 
-export const DEFAULT_NOTE_GRAY_LEVELS = [20, 33, 89, 97] as const;
+export const DEFAULT_NOTE_GRAY_LEVELS = [20, 40, 75, 100] as const;
 
 export function parseLabels(tokens: string[]): NoteLabel[] {
   return tokens.map((token) => {
@@ -68,10 +68,10 @@ export function noteColors(
 } {
   if (usesDefaultNoteGrayLevels(grayLevels)) {
     return [
-      { fill: "#343434", stroke: "#575757", text: "#f8f8f8" },
-      { fill: "#555555", stroke: "#6f6f6f", text: "#f8f8f8" },
-      { fill: "#e4e4e4", stroke: "#9a9a9a", text: "#333333" },
-      { fill: "#f8f8f8", stroke: "#9a9a9a", text: "#333333" },
+      { fill: "#333333", stroke: "#575757", text: "#f8f8f8" },
+      { fill: "#666666", stroke: "#8a8a8a", text: "#f8f8f8" },
+      { fill: "#bfbfbf", stroke: "#636363", text: "#333333" },
+      { fill: "#ffffff", stroke: "#a3a3a3", text: "#333333" },
     ][tone];
   }
 

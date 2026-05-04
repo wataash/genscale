@@ -23,13 +23,13 @@ describe("parseLabels", () => {
 describe("noteColors", () => {
   test("maps tone levels to grayscale colors", () => {
     expect(noteColors(0)).toEqual({
-      fill: "#343434",
+      fill: "#333333",
       stroke: "#575757",
       text: "#f8f8f8",
     });
     expect(noteColors(3)).toEqual({
-      fill: "#f8f8f8",
-      stroke: "#9a9a9a",
+      fill: "#ffffff",
+      stroke: "#a3a3a3",
       text: "#333333",
     });
   });
