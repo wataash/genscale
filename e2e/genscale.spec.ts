@@ -22,7 +22,7 @@ test("renders the guitar scale board", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("switches to concat mode and renders one fretboard per pasted URL", async ({
+test("switches to concat and renders one fretboard per pasted URL", async ({
   page,
 }) => {
   await page.goto("/en");
@@ -40,7 +40,7 @@ test("switches to concat mode and renders one fretboard per pasted URL", async (
     noteGrayLevels: [20, 40, 75, 100],
   };
 
-  await page.getByRole("tab", { name: "concat mode" }).click();
+  await page.getByRole("tab", { name: "concat" }).click();
   await page.getByLabel("Copied settings URLs").fill(
     [
       copiedSettingsUrl(firstSettings),

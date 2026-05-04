@@ -2,7 +2,7 @@
 
 ## 概要
 
-genscale は、ギター指板上にスケールやコードトーンを可視化するWebアプリです。edit mode ではキー、スケールプリセット、チューニングを編集して 0 から 24 フレットに各音の機能名を表示します。concat mode では copy した設定URLを複数行貼り付けて、指板を縦に並べて確認できます。edit mode の表示中の指板は SVG として書き出せます。
+genscale は、ギター指板上にスケールやコードトーンを可視化するWebアプリです。edit ではキー、スケールプリセット、チューニングを編集して 0 から 24 フレットに各音の機能名を表示します。concat では `Copy URL with this settings (experimental)` で得た設定URLを複数行貼り付けて、指板を縦に並べて確認できます。edit の表示中の指板は SVG として書き出せます。
 
 ## 主な機能
 
@@ -16,7 +16,7 @@ genscale は、ギター指板上にスケールやコードトーンを可視�
 - 表示中SVGのダウンロード
 - GitHubリポジトリへのリンク
 - 現在の設定を含むURLのコピー
-- edit/concat mode のタブ切り替え
+- edit/concat のタブ切り替え
 - 複数設定URLの一括プレビュー
 
 ## 画面構成
@@ -24,10 +24,10 @@ genscale は、ギター指板上にスケールやコードトーンを可視�
 アプリはタブで切り替える 2 つの mode を持ちます。
 
 ```text
-genscale     [GitHub] [Export SVG]  [EN][JA]
-[edit mode] [concat mode]
+genscale     [GitHub] [Export SVG in edit]  [EN][JA]
+[edit] [concat]
 
-edit mode
+edit
 +--------------------------------------------------------------+
 |                                                              |
 |                    fretboard SVG preview                     |
@@ -67,13 +67,13 @@ edit mode
 | | {                                                        | |
 | |   "key": "A",                                           | |
 | |   "tuning": ["E4", "B3", "G3", "D3", "A2", "E2"],       | |
-| |   "notes": ["1", "...♭9", "...9", "♭3", "...3", ...]   | |
+| |   "notes": ["1", "...♭9", "...9", "..♭3", "...3", ...] | |
 | | }                                                        | |
 | +----------------------------------------------------------+ |
 | [Copy URL with this settings (experimental)]                |
 +--------------------------------------------------------------+
 
-concat mode
+concat
 +--------------------------------------------------------------+
 | Copied settings URLs                                         |
 | +----------------------------------------------------------+ |
@@ -83,17 +83,20 @@ concat mode
 +--------------------------------------------------------------+
 
 +--------------------------------------------------------------+
+| Line 1: C Major                                              |
 | fretboard                                                    |
 +--------------------------------------------------------------+
 
 +--------------------------------------------------------------+
+| Line 3: D Altered                                            |
 | fretboard                                                    |
 +--------------------------------------------------------------+
 ```
 
-- edit mode では上側のプレビュー領域に指板SVGを表示し、下側の操作パネルでキー、スケール、Notes、NOTE色、チューニング、設定JSONを編集します。
-- concat mode では textarea に 1 行 1 URL で設定URLを貼り付け、その下に URL ごとの指板を表示します。
-- ヘッダーの「SVGを書き出し」ボタンで edit mode の現在の表示を保存します。
+- edit では上側のプレビュー領域に指板SVGを表示し、下側の操作パネルでキー、スケール、Notes、NOTE色、チューニング、設定JSONを編集します。
+- concat では textarea に 1 行 1 URL で設定URLを貼り付け、その下に有効な URL ごとの指板を表示します。
+- concat の各指板の上には `Line N: KEY SCALE` の見出しを表示します。日本語UIでは `N行目: KEY SCALE` です。
+- ヘッダーの「SVGを書き出し」ボタンは edit でのみ表示し、現在の表示を保存します。
 - ヘッダー右側のGitHubアイコンは `https://github.com/wataash/genscale` へのリンクです。
 - Settings editor の下のボタンで、現在の設定を含むURLをコピーできます。
 
@@ -145,7 +148,7 @@ UIは英語と日本語に対応します。
 
 ## 設定エディタ
 
-Settings editor には現在の設定をJSONで表示します。edit mode の UI 上でキー、スケール、チューニング、Notes、NOTE grayscale を変更するとJSONも更新します。
+Settings editor には現在の設定をJSONで表示します。edit の UI 上でキー、スケール、チューニング、Notes、NOTE grayscale を変更するとJSONも更新します。
 
 JSONを編集すると、内容が有効な場合はUIにも反映します。設定JSONは `key`, `tuning`, `notes`, `noteGrayLevels` を持ちます。`scale` は持ちません。
 
@@ -179,9 +182,14 @@ Settings editor の下にある `Copy URL with this settings (experimental)` ボ
 https://example.com/en?settings={"key":"A","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","...♭9","...9","..♭3","...3","...11","...♯11",".5","...♭13","...13","..♭7","...Δ7"],"noteGrayLevels":[20,40,75,100]}
 ```
 
-このURLにアクセスすると、`settings` のJSONを読み込んで edit mode の初期設定に反映します。`settings` が無効なJSON、または genscale の設定として不完全なJSONの場合は、デフォルト設定で表示し、Settings editor をエラー状態にします。
+このURLにアクセスすると、`settings` のJSONを読み込んで edit の初期設定に反映します。`settings` が無効なJSON、または genscale の設定として不完全なJSONの場合は、デフォルト設定で表示し、Settings editor をエラー状態にします。
 
-concat mode では、このURLを textarea に 1 行 1 つずつ貼り付けます。有効な行ごとに指板を 1 つ表示し、無効な行がある場合は行番号付きで警告します。
+concat では、このURLを textarea に 1 行 1 つずつ貼り付けます。
+
+- URL は絶対URLでも相対URLでも構いませんが、`settings` クエリパラメータを含む必要があります。
+- 有効な行ごとに指板を 1 つ表示します。
+- 無効な行がある場合は行番号付きで警告します。
+- すべての行が空、または有効なURLが 1 つもない場合は、指板の代わりに空状態メッセージを表示します。
 
 ## Notes
 

@@ -53,8 +53,8 @@ export const TRANSLATIONS: Record<
     copySettingsUrlCopied: "Copied",
     copySettingsUrlFailed: "Copy failed",
     modeTabsLabel: "Mode",
-    editMode: "edit mode",
-    concatMode: "concat mode",
+    editMode: "edit",
+    concatMode: "concat",
     concatInput: "Copied settings URLs",
     concatHelp:
       'Paste one URL per line from "Copy URL with this settings (experimental)".',
@@ -86,8 +86,8 @@ export const TRANSLATIONS: Record<
     copySettingsUrlCopied: "コピーしました",
     copySettingsUrlFailed: "コピー失敗",
     modeTabsLabel: "モード",
-    editMode: "edit mode",
-    concatMode: "concat mode",
+    editMode: "edit",
+    concatMode: "concat",
     concatInput: "コピーした設定URL",
     concatHelp:
       "各行に 1 つずつ、「この設定のURLをコピー (experimental)」でコピーしたURLを貼り付けます。",
