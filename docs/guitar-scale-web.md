@@ -197,4 +197,4 @@ L - L / 2^(n/12)
 
 アプリ本体は [app/page.tsx](/home/wsh/d/s/guitar_board/app/page.tsx) です。状態管理はReactの `useState`、指板の静的データ生成は `useMemo` を使います。サーバーAPIは使わず、すべてブラウザ内で描画します。
 
-E2Eテストは [e2e/example.spec.ts](/home/wsh/d/s/guitar_board/e2e/example.spec.ts) にあります。
+E2Eテストは [e2e/genscale.spec.ts](/home/wsh/d/s/guitar_board/e2e/genscale.spec.ts) にあります。
