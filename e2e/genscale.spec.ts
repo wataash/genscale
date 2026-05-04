@@ -273,6 +273,9 @@ test("adjusts note grayscale levels", async ({ page }) => {
     name: "NOTE grayscale",
     exact: true,
   });
+  await expect(
+    noteSlider.locator("xpath=ancestor::label[1]").getByText("Δ7", { exact: true }),
+  ).toBeVisible();
   await noteSlider.focus();
   for (let i = 0; i < 40; i += 1) {
     await page.keyboard.press("ArrowRight");

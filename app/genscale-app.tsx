@@ -51,6 +51,7 @@ const NOTE_GRAY_CONTROLS: { label: string; tone: NoteTone }[] = [
   { label: "..NOTE", tone: 2 },
   { label: "...NOTE", tone: 3 },
 ];
+const NOTE_GRAY_PREVIEW_TEXT = "Δ7";
 
 export default function GenscaleApp({
   initialSettingsText,
@@ -340,12 +341,15 @@ export default function GenscaleApp({
                           <span className="flex items-center gap-2 font-mono text-xs text-[#5f584f]">
                             <span
                               aria-hidden="true"
-                              className="h-5 w-5 rounded-full border"
+                              className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-[8px] font-bold leading-none"
                               style={{
                                 backgroundColor: colors.fill,
                                 borderColor: colors.stroke,
+                                color: colors.text,
                               }}
-                            />
+                            >
+                              {NOTE_GRAY_PREVIEW_TEXT}
+                            </span>
                             {noteGrayLevels[tone]}%
                           </span>
                         </span>
