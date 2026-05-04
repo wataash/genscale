@@ -16,6 +16,9 @@ export const TRANSLATIONS: Record<
     notes: string;
     settingEditor: string;
     copySettingsUrl: string;
+    copySettingsUrlCopying: string;
+    copySettingsUrlCopied: string;
+    copySettingsUrlFailed: string;
     tokenError: string;
     tuningError: string;
     settingError: string;
@@ -34,6 +37,9 @@ export const TRANSLATIONS: Record<
     notes: "Notes",
     settingEditor: "Settings editor",
     copySettingsUrl: "Copy URL with this settings (experimental)",
+    copySettingsUrlCopying: "Copying...",
+    copySettingsUrlCopied: "Copied",
+    copySettingsUrlFailed: "Copy failed",
     tokenError: "Notes must contain exactly 12 line-separated tokens.",
     tuningError: "Tuning must contain one note with octave per line.",
     settingError: "Settings editor must contain valid genscale JSON.",
@@ -51,6 +57,9 @@ export const TRANSLATIONS: Record<
     notes: "Notes",
     settingEditor: "設定エディタ",
     copySettingsUrl: "この設定のURLをコピー (experimental)",
+    copySettingsUrlCopying: "コピー中...",
+    copySettingsUrlCopied: "コピーしました",
+    copySettingsUrlFailed: "コピー失敗",
     tokenError: "Notes は行区切りで12個にしてください。",
     tuningError: "チューニングは1行に1つ、音名とオクターブで指定してください。",
     settingError: "設定エディタには有効な genscale JSON を入力してください。",

@@ -42,6 +42,8 @@ type GenscaleAppProps = {
   locale: Locale;
 };
 
+type CopySettingsStatus = "idle" | "copying" | "copied" | "failed";
+
 export default function GenscaleApp({
   initialSettingsText,
   locale,
@@ -66,6 +68,8 @@ export default function GenscaleApp({
   const [settingValid, setSettingValid] = useState(
     initialSettingsText ? Boolean(initialSettings) : true,
   );
+  const [copySettingsStatus, setCopySettingsStatus] =
+    useState<CopySettingsStatus>("idle");
   const parsedTuning = useMemo(() => parseTuning(tuning), [tuning]);
   const board = useMemo(
     () => buildFretboard(parsedTuning.noteIndices),
@@ -117,6 +121,18 @@ export default function GenscaleApp({
     document.documentElement.lang = locale;
   }, [locale]);
 
+  useEffect(() => {
+    if (copySettingsStatus !== "copied" && copySettingsStatus !== "failed") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setCopySettingsStatus("idle");
+    }, 1500);
+
+    return () => window.clearTimeout(timeout);
+  }, [copySettingsStatus]);
+
   function downloadSvg() {
     const source = serializeSvg(document.querySelector("#fretboard-svg"));
     const blob = new Blob([source], { type: "image/svg+xml" });
@@ -128,10 +144,17 @@ export default function GenscaleApp({
     URL.revokeObjectURL(href);
   }
 
-  function copySettingsUrl() {
+  async function copySettingsUrl() {
     const settingsParam = readableSettingsParam(currentSettings);
     const url = `${window.location.origin}${window.location.pathname}?settings=${settingsParam}${window.location.hash}`;
-    navigator.clipboard.writeText(url);
+    setCopySettingsStatus("copying");
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopySettingsStatus("copied");
+    } catch {
+      setCopySettingsStatus("failed");
+    }
   }
 
   function applySettingEditor(text: string) {
@@ -343,11 +366,25 @@ export default function GenscaleApp({
               ) : null}
 
               <button
-                className="w-fit rounded-md bg-[#2d4f47] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#213d37]"
+                className={`w-fit rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition active:translate-y-px active:scale-[0.99] ${
+                  copySettingsStatus === "copied"
+                    ? "bg-[#3f6b57] shadow-inner"
+                    : copySettingsStatus === "failed"
+                      ? "bg-[#7a4f00] shadow-inner"
+                      : "bg-[#2d4f47] hover:bg-[#213d37]"
+                }`}
                 type="button"
                 onClick={copySettingsUrl}
               >
-                {t.copySettingsUrl}
+                <span aria-live="polite">
+                  {copySettingsStatus === "copying"
+                    ? t.copySettingsUrlCopying
+                    : copySettingsStatus === "copied"
+                      ? t.copySettingsUrlCopied
+                      : copySettingsStatus === "failed"
+                        ? t.copySettingsUrlFailed
+                        : t.copySettingsUrl}
+                </span>
               </button>
             </div>
           </aside>

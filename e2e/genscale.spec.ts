@@ -147,6 +147,7 @@ test("copies and restores settings through the URL", async ({ page }) => {
   await page.getByRole("button", {
     name: "Copy URL with this settings (experimental)",
   }).click();
+  await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
 
   const copiedUrl = await page.evaluate(
     () => (window as Window & { copiedSettingsUrl?: string }).copiedSettingsUrl,
