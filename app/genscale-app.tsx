@@ -50,6 +50,12 @@ type AppSettings = {
   notes: string[];
 };
 
+type TuningPreset = {
+  id: string;
+  labels: Record<Locale, string>;
+  notes: string[];
+};
+
 const TRANSLATIONS: Record<
   Locale,
   {
@@ -57,6 +63,8 @@ const TRANSLATIONS: Record<
     key: string;
     scale: string;
     tuning: string;
+    tuningPreset: string;
+    customTuning: string;
     notes: string;
     settingEditor: string;
     tokenError: string;
@@ -71,6 +79,8 @@ const TRANSLATIONS: Record<
     key: "Key",
     scale: "Scale",
     tuning: "Tuning",
+    tuningPreset: "Preset",
+    customTuning: "Custom",
     notes: "Notes",
     settingEditor: "Settings editor",
     tokenError: "Notes must contain exactly 12 line-separated tokens.",
@@ -84,6 +94,8 @@ const TRANSLATIONS: Record<
     key: "キー",
     scale: "スケール",
     tuning: "チューニング",
+    tuningPreset: "プリセット",
+    customTuning: "カスタム",
     notes: "Notes",
     settingEditor: "設定エディタ",
     tokenError: "Notes は行区切りで12個にしてください。",
@@ -95,6 +107,33 @@ const TRANSLATIONS: Record<
 };
 
 const DEFAULT_TUNING = ["E4", "B3", "G3", "D3", "A2", "E2"].join("\n");
+const TUNING_PRESETS: TuningPreset[] = [
+  {
+    id: "guitar",
+    labels: { en: "Guitar", ja: "ギター" },
+    notes: ["E4", "B3", "G3", "D3", "A2", "E2"],
+  },
+  {
+    id: "bass",
+    labels: { en: "Bass", ja: "ベース" },
+    notes: ["G2", "D2", "A1", "E1"],
+  },
+  {
+    id: "bass5",
+    labels: { en: "5-string bass", ja: "5弦ベース" },
+    notes: ["G2", "D2", "A1", "E1", "B1"],
+  },
+  {
+    id: "bass6",
+    labels: { en: "6-string bass", ja: "6弦ベース" },
+    notes: ["C3", "G2", "D2", "A1", "E1", "B1"],
+  },
+  {
+    id: "guitar7",
+    labels: { en: "7-string guitar", ja: "7弦ギター" },
+    notes: ["E4", "B3", "G3", "D3", "A2", "E2", "B2"],
+  },
+];
 const NOTE_INDICES: Record<NoteName, number> = {
   A: 0,
   "A#": 1,
@@ -404,6 +443,9 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   const inlayH = Math.max(34, Math.min(boardH * 0.42, 82));
   const inlayW = 8;
   const octaveInlayW = 13;
+  const tuningPresetId =
+    TUNING_PRESETS.find((preset) => preset.notes.join("\n") === tuning)?.id ??
+    "custom";
   const currentSettingEditorText = settingsText({
     key,
     scale,
@@ -552,8 +594,30 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                 </p>
               ) : null}
 
-              <label className="grid gap-2 text-sm font-semibold">
-                {t.tuning}
+              <div className="grid gap-2 text-sm font-semibold">
+                <span>{t.tuning}</span>
+                <select
+                  aria-label={t.tuningPreset}
+                  className="h-10 rounded-md border border-[#c9bda9] bg-white px-3 text-base"
+                  value={tuningPresetId}
+                  onChange={(event) => {
+                    const preset = TUNING_PRESETS.find(
+                      (item) => item.id === event.target.value,
+                    );
+                    if (!preset) return;
+                    setTuning(preset.notes.join("\n"));
+                    setSettingValid(true);
+                  }}
+                >
+                  {tuningPresetId === "custom" ? (
+                    <option value="custom">{t.customTuning}</option>
+                  ) : null}
+                  {TUNING_PRESETS.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.labels[locale]}
+                    </option>
+                  ))}
+                </select>
                 <textarea
                   aria-label={t.tuning}
                   className="min-h-36 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
@@ -564,7 +628,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                     setSettingValid(true);
                   }}
                 />
-              </label>
+              </div>
 
               {!parsedTuning.valid ? (
                 <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">

@@ -47,13 +47,22 @@ test("shows formal scale names while keeping compact scale identifiers", async (
 test("supports editable tuning and string count", async ({ page }) => {
   await page.goto("/en");
 
+  const tuningPreset = page.getByRole("combobox", { name: "Preset" });
+  await expect(tuningPreset).toHaveValue("guitar");
   await expect(page.getByLabel("Tuning")).toHaveValue(
     "E4\nB3\nG3\nD3\nA2\nE2",
   );
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(6);
 
+  await tuningPreset.selectOption("bass6");
+  await expect(page.getByLabel("Tuning")).toHaveValue(
+    "C3\nG2\nD2\nA1\nE1\nB1",
+  );
+  await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(6);
+
   await page.getByLabel("Tuning").fill("G3\nD3\nA2\nE2");
 
+  await expect(tuningPreset).toHaveValue("custom");
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
 });
 
@@ -197,6 +206,9 @@ test("renders Japanese UI at /ja", async ({ page }) => {
   await expect(page.getByRole("button", { name: "SVGを書き出し" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "キー" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "スケール" })).toBeVisible();
+  await expect(
+    page.getByRole("combobox", { name: "プリセット" }),
+  ).toBeVisible();
   await expect(page.getByLabel("チューニング")).toBeVisible();
   await expect(page.getByLabel("設定エディタ")).toBeVisible();
   await expect(page.getByLabel("A Minor 7 ギター指板スケール")).toBeVisible();
