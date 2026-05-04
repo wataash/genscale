@@ -254,9 +254,14 @@ test("adjusts note grayscale levels", async ({ page }) => {
   await page.goto("/en");
 
   await expect(page.locator('svg circle[fill="#343434"]')).not.toHaveCount(0);
-  await page
-    .getByRole("slider", { name: "NOTE grayscale", exact: true })
-    .fill("60");
+  const noteSlider = page.getByRole("slider", {
+    name: "NOTE grayscale",
+    exact: true,
+  });
+  await noteSlider.focus();
+  for (let i = 0; i < 40; i += 1) {
+    await page.keyboard.press("ArrowRight");
+  }
 
   await expect(page.locator('svg circle[fill="#999999"]')).not.toHaveCount(0);
 });

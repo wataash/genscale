@@ -234,7 +234,7 @@ export default function GenscaleApp({
                     ? "bg-[#2d4f47] text-white"
                     : "text-[#4c463e] hover:bg-[#eee8dc]"
                 }`}
-                href="/en"
+                href="/"
               >
                 EN
               </Link>
