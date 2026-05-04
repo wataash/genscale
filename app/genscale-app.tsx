@@ -22,6 +22,11 @@ type NoteLabel = {
   inScale: boolean;
 };
 
+type ParsedTuning = {
+  noteIndices: number[];
+  valid: boolean;
+};
+
 type Fretboard = {
   normalizedFretPositions: number[];
   noteIndices: number[][];
@@ -39,9 +44,11 @@ const TRANSLATIONS: Record<
     exportSvg: string;
     key: string;
     scale: string;
+    tuning: string;
     editLabels: string;
     notes: string;
     tokenError: string;
+    tuningError: string;
     custom: string;
     fretboardLabel: (key: string, scale: string) => string;
     localeLabel: string;
@@ -51,9 +58,11 @@ const TRANSLATIONS: Record<
     exportSvg: "Export SVG",
     key: "Key",
     scale: "Scale",
+    tuning: "Tuning",
     editLabels: "Edit 12 note labels",
     notes: "Notes",
-    tokenError: "Notes must contain exactly 12 space-separated tokens.",
+    tokenError: "Notes must contain exactly 12 line-separated tokens.",
+    tuningError: "Tuning must contain one note with octave per line.",
     custom: "custom",
     fretboardLabel: (key, scale) => `${key} ${scale} guitar scale fretboard`,
     localeLabel: "Language",
@@ -62,16 +71,18 @@ const TRANSLATIONS: Record<
     exportSvg: "SVGを書き出し",
     key: "キー",
     scale: "スケール",
+    tuning: "チューニング",
     editLabels: "12音ラベルを編集",
     notes: "Notes",
-    tokenError: "Notes は空白区切りで12個にしてください。",
+    tokenError: "Notes は行区切りで12個にしてください。",
+    tuningError: "チューニングは1行に1つ、音名とオクターブで指定してください。",
     custom: "カスタム",
     fretboardLabel: (key, scale) => `${key} ${scale} ギター指板スケール`,
     localeLabel: "言語",
   },
 };
 
-const OPEN_NOTE_INDICES = [7, 2, 10, 5, 0, 7];
+const DEFAULT_TUNING = ["E4", "B3", "G3", "D3", "A2", "E2"].join("\n");
 const NOTE_INDICES: Record<NoteName, number> = {
   A: 0,
   "A#": 1,
@@ -188,10 +199,35 @@ function calcNormalizedFretPositions(fretCount: number): number[] {
   return positions.map((p) => Number((p / total).toFixed(12)));
 }
 
-function buildFretboard(): Fretboard {
+function parseTuning(tuning: string): ParsedTuning {
+  const notes = tuning
+    .split(/\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (notes.length === 0) {
+    return { noteIndices: parseTuning(DEFAULT_TUNING).noteIndices, valid: false };
+  }
+
+  const noteIndices = notes.map((note) => {
+    const match = /^([A-G](?:#|b)?)-?\d+$/.exec(note);
+    if (!match) return null;
+
+    const noteName = ENHARMONICS[match[1]];
+    return noteName ? NOTE_INDICES[noteName] : null;
+  });
+
+  if (noteIndices.some((noteIndex) => noteIndex === null)) {
+    return { noteIndices: parseTuning(DEFAULT_TUNING).noteIndices, valid: false };
+  }
+
+  return { noteIndices: noteIndices as number[], valid: true };
+}
+
+function buildFretboard(openNoteIndices: number[]): Fretboard {
   return {
     normalizedFretPositions: calcNormalizedFretPositions(24),
-    noteIndices: OPEN_NOTE_INDICES.map((open) =>
+    noteIndices: openNoteIndices.map((open) =>
       Array.from({ length: 25 }, (_, fret) => (open + fret) % 12),
     ),
   };
@@ -208,6 +244,10 @@ function scaleTokens(scale: string): string[] {
   return SCALE_PRESETS[SCALE_ALIASES[scale] ?? scale] ?? SCALE_PRESETS.m7;
 }
 
+function noteTokensText(scale: string): string {
+  return scaleTokens(scale).join("\n");
+}
+
 function serializeSvg(svg: SVGSVGElement | null): string {
   if (!svg) return "";
   return new XMLSerializer().serializeToString(svg);
@@ -217,11 +257,21 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   const t = TRANSLATIONS[locale];
   const [key, setKey] = useState("A");
   const [scale, setScale] = useState("m7");
+  const [tuning, setTuning] = useState(DEFAULT_TUNING);
   const [customMode, setCustomMode] = useState(false);
-  const [customNotes, setCustomNotes] = useState(scaleTokens("m7").join(" "));
-  const board = useMemo(() => buildFretboard(), []);
+  const [customNotes, setCustomNotes] = useState(noteTokensText("m7"));
+  const parsedTuning = useMemo(() => parseTuning(tuning), [tuning]);
+  const board = useMemo(
+    () => buildFretboard(parsedTuning.noteIndices),
+    [parsedTuning.noteIndices],
+  );
   const rootKey = NOTE_INDICES[ENHARMONICS[key]];
-  const activeTokens = customMode ? customNotes.trim().split(/\s+/) : scaleTokens(scale);
+  const activeTokens = customMode
+    ? customNotes
+        .split(/\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+    : scaleTokens(scale);
   const labels = parseLabels(
     activeTokens.length === 12 ? activeTokens : scaleTokens(scale),
   );
@@ -236,7 +286,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   );
   const stringYs = board.noteIndices.map((_, i) => labelH + CANVAS.stringGap * i);
   const yMid = (stringYs[0] + stringYs[stringYs.length - 1]) / 2;
-  const ySpread = stringYs[1] - stringYs[0];
+  const ySpread = stringYs[1] - stringYs[0] || CANVAS.stringGap;
   const tokenValid = activeTokens.length === 12;
 
   useEffect(() => {
@@ -256,7 +306,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
 
   return (
     <main className="min-h-screen bg-[#f6f3ed] text-[#262521]">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8">
+      <section className="mx-auto flex w-full flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8">
         <header className="flex flex-col gap-3 border-b border-[#d8d0c2] pb-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-normal text-[#24211d] sm:text-4xl">
@@ -329,7 +379,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   disabled={customMode}
                   onChange={(event) => {
                     setScale(event.target.value);
-                    setCustomNotes(scaleTokens(event.target.value).join(" "));
+                    setCustomNotes(noteTokensText(event.target.value));
                   }}
                 >
                   {SCALE_NAMES.map((name) => (
@@ -339,6 +389,23 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   ))}
                 </select>
               </label>
+
+              <label className="grid gap-2 text-sm font-semibold">
+                {t.tuning}
+                <textarea
+                  aria-label={t.tuning}
+                  className="min-h-36 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
+                  value={tuning}
+                  spellCheck={false}
+                  onChange={(event) => setTuning(event.target.value)}
+                />
+              </label>
+
+              {!parsedTuning.valid ? (
+                <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
+                  {t.tuningError}
+                </p>
+              ) : null}
 
               <label className="flex items-center gap-3 text-sm font-semibold">
                 <input
@@ -353,7 +420,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
               <label className="grid gap-2 text-sm font-semibold">
                 {t.notes}
                 <textarea
-                  className="min-h-28 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6 disabled:bg-[#eee8dc]"
+                  className="min-h-72 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6 disabled:bg-[#eee8dc]"
                   value={customNotes}
                   disabled={!customMode}
                   spellCheck={false}

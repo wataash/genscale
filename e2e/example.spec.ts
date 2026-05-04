@@ -22,6 +22,19 @@ test("updates the fretboard label when key and scale change", async ({ page }) =
   ).toBeVisible();
 });
 
+test("supports editable tuning and string count", async ({ page }) => {
+  await page.goto("/en");
+
+  await expect(page.getByLabel("Tuning")).toHaveValue(
+    "E4\nB3\nG3\nD3\nA2\nE2",
+  );
+  await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(6);
+
+  await page.getByLabel("Tuning").fill("G3\nD3\nA2\nE2");
+
+  await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
+});
+
 test("keeps the fretboard above the controls at small and large widths", async ({
   page,
 }) => {
@@ -47,15 +60,34 @@ test("keeps the fretboard above the controls at small and large widths", async (
   }
 });
 
+test("shows the 24th fret when the browser is wide enough", async ({ page }) => {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto("/en");
+
+  const label24Box = await page
+    .locator("svg text")
+    .filter({ hasText: /^24$/ })
+    .first()
+    .boundingBox();
+
+  expect(label24Box).not.toBeNull();
+  if (!label24Box) throw new Error("Missing 24th fret label");
+
+  expect(label24Box.x + label24Box.width).toBeLessThanOrEqual(1600);
+});
+
 test("supports underscore tokens for out-of-scale and hidden labels", async ({
   page,
 }) => {
   await page.goto("/en");
 
   await page.getByLabel("Edit 12 note labels").check();
+  await expect(page.getByLabel("Notes")).toHaveValue(
+    "1\n_♭9\n_9\n♭3\n_3\n_11\n_♯11\n5\n_♭13\n_13\n♭7\n_Δ7",
+  );
   await page
     .getByLabel("Notes")
-    .fill("1 _ _ ♭3 _ _ _ 5 _ _ ♭7 _");
+    .fill("1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_");
 
   await expect(page.getByLabel("A custom guitar scale fretboard")).toBeVisible();
   await expect(page.locator("svg text").filter({ hasText: "♭9" })).toHaveCount(0);
@@ -68,5 +100,6 @@ test("renders Japanese UI at /ja", async ({ page }) => {
   await expect(page.getByRole("button", { name: "SVGを書き出し" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "キー" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "スケール" })).toBeVisible();
+  await expect(page.getByLabel("チューニング")).toBeVisible();
   await expect(page.getByLabel("A m7 ギター指板スケール")).toBeVisible();
 });
