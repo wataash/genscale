@@ -41,6 +41,16 @@ test("switches to concat and renders one fretboard per pasted URL", async ({
   };
 
   await page.getByRole("tab", { name: "concat" }).click();
+  await expect(page.getByLabel("Copied settings URLs")).toHaveValue(
+    [
+      'http://localhost:3000/?settings={"key":"G","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","...♭9","...9","..♭3","...3","...11","...♯11",".5","...♭13","...13","..♭7","...Δ7"],"noteGrayLevels":[20,40,75,100]}',
+      'http://localhost:3000/?settings={"key":"A","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","..♭9","...9","..♯9","..3","...11","..♯11","...5","..♭13","...13","..♯13","...Δ7"],"noteGrayLevels":[20,40,75,100]}',
+      'http://localhost:3000/?settings={"key":"C","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","...♭9","...9","...♯9","..3","...11","...♯11",".5","...♭13","...13","...♭7","..Δ7"],"noteGrayLevels":[20,40,75,100]}',
+    ].join("\n"),
+  );
+  await expect(page.getByLabel("G m7 guitar scale fretboard")).toBeVisible();
+  await expect(page.getByLabel("A Altered guitar scale fretboard")).toBeVisible();
+  await expect(page.getByLabel("C Δ7 guitar scale fretboard")).toBeVisible();
   await page.getByLabel("Copied settings URLs").fill(
     [
       copiedSettingsUrl(firstSettings),

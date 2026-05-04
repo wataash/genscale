@@ -2,7 +2,7 @@
 
 ## 概要
 
-genscale は、ギター指板上にスケールやコードトーンを可視化するWebアプリです。edit ではキー、スケールプリセット、チューニングを編集して 0 から 24 フレットに各音の機能名を表示します。concat では `Copy URL with this settings (experimental)` で得た設定URLを複数行貼り付けて、指板を縦に並べて確認できます。edit の表示中の指板は SVG として書き出せます。
+genscale は、ギター指板上にスケールやコードトーンを可視化するWebアプリです。edit ではキー、スケールプリセット、チューニングを編集して 0 から 24 フレットに各音の機能名を表示します。concat では `Copy URL with this settings (experimental)` で得た設定URLを複数行貼り付けて、指板を縦に並べて確認できます。concat の textarea には起動時からサンプルURLを 3 行入れておきます。edit の表示中の指板は SVG として書き出せます。
 
 ## 主な機能
 
@@ -21,7 +21,7 @@ genscale は、ギター指板上にスケールやコードトーンを可視�
 
 ## 画面構成
 
-アプリはタブで切り替える 2 つの mode を持ちます。
+アプリはタブで切り替える 2 つの画面 `edit` / `concat` を持ちます。
 
 ```text
 genscale     [GitHub] [Export SVG in edit]  [EN][JA]
@@ -77,8 +77,9 @@ concat
 +--------------------------------------------------------------+
 | Copied settings URLs                                         |
 | +----------------------------------------------------------+ |
-| | https://example.com/en?settings=...                     | |
-| | https://example.com/en?settings=...                     | |
+| | http://localhost:3000/?settings={"key":"G",...}        | |
+| | http://localhost:3000/?settings={"key":"A",...}        | |
+| | http://localhost:3000/?settings={"key":"C",...}        | |
 | +----------------------------------------------------------+ |
 +--------------------------------------------------------------+
 
@@ -95,6 +96,7 @@ concat
 
 - edit では上側のプレビュー領域に指板SVGを表示し、下側の操作パネルでキー、スケール、Notes、NOTE色、チューニング、設定JSONを編集します。
 - concat では textarea に 1 行 1 URL で設定URLを貼り付け、その下に有効な URL ごとの指板を表示します。
+- concat の textarea には初期値としてサンプルの設定URLを 3 行入れておきます。
 - concat の各指板の上には `Line N: KEY SCALE` の見出しを表示します。日本語UIでは `N行目: KEY SCALE` です。
 - ヘッダーの「SVGを書き出し」ボタンは edit でのみ表示し、現在の表示を保存します。
 - ヘッダー右側のGitHubアイコンは `https://github.com/wataash/genscale` へのリンクです。
@@ -186,6 +188,7 @@ https://example.com/en?settings={"key":"A","tuning":["E4","B3","G3","D3","A2","E
 
 concat では、このURLを textarea に 1 行 1 つずつ貼り付けます。
 
+- 初期表示ではサンプルとして 3 本のURLをあらかじめ入れておきます。
 - URL は絶対URLでも相対URLでも構いませんが、`settings` クエリパラメータを含む必要があります。
 - 有効な行ごとに指板を 1 つ表示します。
 - 無効な行がある場合は行番号付きで警告します。
