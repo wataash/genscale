@@ -440,7 +440,15 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   const stringYs = board.noteIndices.map((_, i) => labelH + CANVAS.stringGap * i);
   const yMid = (stringYs[0] + stringYs[stringYs.length - 1]) / 2;
   const tokenValid = activeTokens.length === 12;
-  const inlayH = Math.max(34, Math.min(boardH * 0.42, 82));
+  const stringCount = stringYs.length;
+  const inlayY =
+    stringCount >= 3
+      ? (stringYs[0] + stringYs[1]) / 2
+      : yMid - (boardH * 0.8) / 2;
+  const inlayH =
+    stringCount >= 3
+      ? (stringYs[stringCount - 2] + stringYs[stringCount - 1]) / 2 - inlayY
+      : boardH * 0.8;
   const inlayW = 8;
   const octaveInlayW = 13;
   const tuningPresetId =
@@ -726,7 +734,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   <rect
                     key={`inlay-${fret}`}
                     x={(fretXs[fret - 1] + fretXs[fret]) / 2 - inlayW / 2}
-                    y={yMid - inlayH / 2}
+                    y={inlayY}
                     width={inlayW}
                     height={inlayH}
                     rx="2"
@@ -737,7 +745,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   <rect
                     key={`inlay-${fret}`}
                     x={(fretXs[fret - 1] + fretXs[fret]) / 2 - octaveInlayW / 2}
-                    y={yMid - inlayH / 2}
+                    y={inlayY}
                     width={octaveInlayW}
                     height={inlayH}
                     rx="2"
