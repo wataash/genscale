@@ -22,8 +22,10 @@ type NoteName =
 
 type NoteLabel = {
   text: string;
-  inScale: boolean;
+  tone: NoteTone;
 };
+
+type NoteTone = 0 | 1 | 2 | 3;
 
 type ParsedTuning = {
   noteIndices: number[];
@@ -132,35 +134,35 @@ const ENHARMONICS: Record<string, NoteName> = {
 };
 
 const SCALE_PRESETS: Record<string, string[]> = {
-  M: "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 _♭7 _Δ7".split(" "),
-  "6": "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 6 _♭7 _Δ7".split(" "),
-  "69": "1 _♭9 9 _♯9 3 _11 _♯11 5 _♭13 6 _♭7 _Δ7".split(" "),
-  "7": "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
-  M7: "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 _♭7 Δ7".split(" "),
-  b9: "1 ♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
-  "9": "1 _♭9 9 _♯9 3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
-  M9: "1 _♭9 9 _♯9 3 _11 _♯11 5 _♭13 _13 _♭7 Δ7".split(" "),
-  "(9)": "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 _♭7 _Δ7".split(" "),
-  aug: "1 _♭9 _9 _♯9 3 _11 _♯11 _5 ♯5 _13 _♭7 _Δ7".split(" "),
-  aug7: "1 _♭9 _9 _♯9 3 _11 _♯11 _5 ♯5 _13 ♭7 _Δ7".split(" "),
-  augM7: "1 _♭9 _9 _♯9 3 _11 _♯11 _5 ♯5 _13 _♭7 Δ7".split(" "),
-  m: "1 _♭9 _9 ♭3 _3 _11 _♯11 5 _♭13 _13 _♭7 _Δ7".split(" "),
-  mb5: "1 _♭9 _9 ♭3 _3 _11 ♭5 _5 _♭13 _13 _♭7 _Δ7".split(" "),
-  m6: "1 _♭9 _9 ♭3 _3 _11 _♯11 5 _♭13 6 _♭7 _Δ7".split(" "),
-  m7: "1 _♭9 _9 ♭3 _3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
-  mM7: "1 _♭9 _9 ♭3 _3 _11 _♯11 5 _♭13 _13 _♭7 Δ7".split(" "),
-  m9: "1 _♭9 9 ♭3 _3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
-  mM9: "1 _♭9 9 ♭3 _3 _11 _♯11 5 _♭13 _13 _♭7 Δ7".split(" "),
-  "m(9)": "1 _♭9 9 ♭3 _3 _11 _♯11 5 _♭13 _13 _♭7 _Δ7".split(" "),
-  hdim: "1 _♭9 _9 ♭3 _3 _11 ♭5 _5 _♭13 _13 ♭7 _Δ7".split(" "),
-  dim: "1 _♭9 _9 ♭3 _3 _11 ♭5 _5 _♭13 𝄫7 _♭7 _Δ7".split(" "),
-  mP: "1 _♭9 _9 ♭3 _3 4 _♭5 5 _♭13 _13 ♭7 _Δ7".split(" "),
-  MP: "1 _♭9 9 _♯9 3 _11 _♯11 5 _♭13 13 _♭7 _Δ7".split(" "),
-  hp5b: "1 ♭9 _9 _♯9 3 11 _♯11 5 ♭13 _13 ♭7 _Δ7".split(" "),
-  lyd7: "1 _♭9 9 _♯9 3 _11 ♯11 5 _♭13 13 ♭7 _Δ7".split(" "),
-  alt: "1 ♭9 _9 ♯9 3 _11 ♯11 _5 ♭13 _13 ♯13 _Δ7".split(" "),
-  sloc: "1 ♭9 _9 ♭3 ♭11 _11 ♭5 _5 ♭13 _13 ♭7 _Δ7".split(" "),
-  cdim: "1 ♭9 _9 ♯9 3 _11 ♯11 5 _♭13 13 ♭7 _Δ7".split(" "),
+  M: "1 ___♭9 ___9 ___♯9 3 ___11 ___♯11 5 ___♭13 ___13 ___♭7 ___Δ7".split(" "),
+  "6": "1 ___♭9 ___9 ___♯9 3 ___11 ___♯11 5 ___♭13 6 ___♭7 ___Δ7".split(" "),
+  "69": "1 ___♭9 9 ___♯9 3 ___11 ___♯11 5 ___♭13 6 ___♭7 ___Δ7".split(" "),
+  "7": "1 ___♭9 ___9 ___♯9 3 ___11 ___♯11 5 ___♭13 ___13 ♭7 ___Δ7".split(" "),
+  M7: "1 ___♭9 ___9 ___♯9 3 ___11 ___♯11 5 ___♭13 ___13 ___♭7 Δ7".split(" "),
+  b9: "1 ♭9 ___9 ___♯9 3 ___11 ___♯11 5 ___♭13 ___13 ♭7 ___Δ7".split(" "),
+  "9": "1 ___♭9 9 ___♯9 3 ___11 ___♯11 5 ___♭13 ___13 ♭7 ___Δ7".split(" "),
+  M9: "1 ___♭9 9 ___♯9 3 ___11 ___♯11 5 ___♭13 ___13 ___♭7 Δ7".split(" "),
+  "(9)": "1 ___♭9 ___9 ___♯9 3 ___11 ___♯11 5 ___♭13 ___13 ___♭7 ___Δ7".split(" "),
+  aug: "1 ___♭9 ___9 ___♯9 3 ___11 ___♯11 ___5 ♯5 ___13 ___♭7 ___Δ7".split(" "),
+  aug7: "1 ___♭9 ___9 ___♯9 3 ___11 ___♯11 ___5 ♯5 ___13 ♭7 ___Δ7".split(" "),
+  augM7: "1 ___♭9 ___9 ___♯9 3 ___11 ___♯11 ___5 ♯5 ___13 ___♭7 Δ7".split(" "),
+  m: "1 ___♭9 ___9 ♭3 ___3 ___11 ___♯11 5 ___♭13 ___13 ___♭7 ___Δ7".split(" "),
+  mb5: "1 ___♭9 ___9 ♭3 ___3 ___11 ♭5 ___5 ___♭13 ___13 ___♭7 ___Δ7".split(" "),
+  m6: "1 ___♭9 ___9 ♭3 ___3 ___11 ___♯11 5 ___♭13 6 ___♭7 ___Δ7".split(" "),
+  m7: "1 ___♭9 ___9 ♭3 ___3 ___11 ___♯11 5 ___♭13 ___13 ♭7 ___Δ7".split(" "),
+  mM7: "1 ___♭9 ___9 ♭3 ___3 ___11 ___♯11 5 ___♭13 ___13 ___♭7 Δ7".split(" "),
+  m9: "1 ___♭9 9 ♭3 ___3 ___11 ___♯11 5 ___♭13 ___13 ♭7 ___Δ7".split(" "),
+  mM9: "1 ___♭9 9 ♭3 ___3 ___11 ___♯11 5 ___♭13 ___13 ___♭7 Δ7".split(" "),
+  "m(9)": "1 ___♭9 9 ♭3 ___3 ___11 ___♯11 5 ___♭13 ___13 ___♭7 ___Δ7".split(" "),
+  hdim: "1 ___♭9 ___9 ♭3 ___3 ___11 ♭5 ___5 ___♭13 ___13 ♭7 ___Δ7".split(" "),
+  dim: "1 ___♭9 ___9 ♭3 ___3 ___11 ♭5 ___5 ___♭13 𝄫7 ___♭7 ___Δ7".split(" "),
+  mP: "1 ___♭9 ___9 ♭3 ___3 4 ___♭5 5 ___♭13 ___13 ♭7 ___Δ7".split(" "),
+  MP: "1 ___♭9 9 ___♯9 3 ___11 ___♯11 5 ___♭13 13 ___♭7 ___Δ7".split(" "),
+  hp5b: "1 ♭9 ___9 ___♯9 3 11 ___♯11 5 ♭13 ___13 ♭7 ___Δ7".split(" "),
+  lyd7: "1 ___♭9 9 ___♯9 3 ___11 ♯11 5 ___♭13 13 ♭7 ___Δ7".split(" "),
+  alt: "1 ♭9 ___9 ♯9 3 ___11 ♯11 ___5 ♭13 ___13 ♯13 ___Δ7".split(" "),
+  sloc: "1 ♭9 ___9 ♭3 ♭11 ___11 ♭5 ___5 ♭13 ___13 ♭7 ___Δ7".split(" "),
+  cdim: "1 ♭9 ___9 ♯9 3 ___11 ♯11 5 ___♭13 13 ♭7 ___Δ7".split(" "),
 };
 
 const SCALE_DISPLAY_NAMES: Record<string, string> = {
@@ -276,10 +278,28 @@ function buildFretboard(openNoteIndices: number[]): Fretboard {
 }
 
 function parseLabels(tokens: string[]): NoteLabel[] {
-  return tokens.map((token) => ({
-    text: token.startsWith("_") ? token.slice(1) : token,
-    inScale: !token.startsWith("_"),
-  }));
+  return tokens.map((token) => {
+    const prefixLength = token.match(/^_*/)?.[0].length ?? 0;
+    const tone = Math.min(prefixLength, 3) as NoteTone;
+
+    return {
+      text: token.slice(prefixLength),
+      tone,
+    };
+  });
+}
+
+function noteColors(tone: NoteTone): {
+  fill: string;
+  stroke: string;
+  text: string;
+} {
+  return [
+    { fill: "#343434", stroke: "#575757", text: "#f8f8f8" },
+    { fill: "#555555", stroke: "#6f6f6f", text: "#f8f8f8" },
+    { fill: "#e4e4e4", stroke: "#9a9a9a", text: "#333333" },
+    { fill: "#f8f8f8", stroke: "#9a9a9a", text: "#333333" },
+  ][tone];
 }
 
 function scaleTokens(scale: string): string[] {
@@ -664,6 +684,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   stringNoteIndices.map((fretNoteIndex, noteIndex) => {
                     const offset = (fretNoteIndex - rootKey + 12) % 12;
                     const note = labels[offset];
+                    const colors = noteColors(note.tone);
                     const cx =
                       noteIndex === 0
                         ? fretXs[0] - CANVAS.nutW / 2
@@ -676,8 +697,8 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                           cx={cx}
                           cy={cy}
                           r={CANVAS.noteRadius}
-                          fill={note.inScale ? "#343434" : "#f7f7f7"}
-                          stroke="#777777"
+                          fill={colors.fill}
+                          stroke={colors.stroke}
                           strokeWidth="1.25"
                         />
                         {note.text ? (
@@ -685,7 +706,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                             x={cx}
                             y={cy + 4}
                             textAnchor="middle"
-                            fill={note.inScale ? "#f8f8f8" : "#3a3a3a"}
+                            fill={colors.text}
                             fontSize="16"
                             fontWeight="700"
                           >

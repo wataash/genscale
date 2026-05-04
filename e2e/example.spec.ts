@@ -83,7 +83,20 @@ test("syncs the settings editor with the controls", async ({ page }) => {
         key: "D",
         scale: "M7",
         tuning: ["G3", "D3", "A2", "E2"],
-        notes: ["1", "_", "_", "♭3", "_", "_", "_", "5", "_", "_", "♭7", "_"],
+        notes: [
+          "1",
+          "___",
+          "___",
+          "♭3",
+          "___",
+          "___",
+          "___",
+          "5",
+          "___",
+          "___",
+          "♭7",
+          "___",
+        ],
       },
       null,
       2,
@@ -94,7 +107,7 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   await expect(page.getByRole("combobox", { name: "Scale" })).toHaveValue("M7");
   await expect(page.getByLabel("Tuning")).toHaveValue("G3\nD3\nA2\nE2");
   await expect(page.getByLabel("Notes")).toHaveValue(
-    "1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_",
+    "1\n___\n___\n♭3\n___\n___\n___\n5\n___\n___\n♭7\n___",
   );
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
   await expect(page.getByLabel("D Major 7 guitar scale fretboard")).toBeVisible();
@@ -161,17 +174,17 @@ test("supports editable underscore tokens for out-of-scale and hidden labels", a
   await page.goto("/en");
 
   await expect(page.getByLabel("Notes")).toHaveValue(
-    "1\n_♭9\n_9\n♭3\n_3\n_11\n_♯11\n5\n_♭13\n_13\n♭7\n_Δ7",
+    "1\n___♭9\n___9\n♭3\n___3\n___11\n___♯11\n5\n___♭13\n___13\n♭7\n___Δ7",
   );
   const notes = page.getByLabel("Notes");
   await notes.click();
   await notes.press("Control+A");
   await notes.press("Backspace");
   await expect(notes).toHaveValue("");
-  await notes.fill("1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_");
+  await notes.fill("1\n___\n___\n♭3\n___\n___\n___\n5\n___\n___\n♭7\n___");
 
   await expect(notes).toHaveValue(
-    "1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_",
+    "1\n___\n___\n♭3\n___\n___\n___\n5\n___\n___\n♭7\n___",
   );
   await expect(page.getByLabel("A Minor 7 guitar scale fretboard")).toBeVisible();
   await expect(page.locator("svg text").filter({ hasText: "♭9" })).toHaveCount(0);
