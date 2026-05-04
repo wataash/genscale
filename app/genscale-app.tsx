@@ -59,8 +59,8 @@ const NOTE_GRAY_CONTROLS: { label: string; tone: NoteTone }[] = [
 ];
 const NOTE_GRAY_PREVIEW_TEXT = "Δ7";
 const CONCAT_EXAMPLE_URLS = [
-  'http://localhost:3000/?settings={"key":"G","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","...♭9","...9","..♭3","...3","...11","...♯11",".5","...♭13","...13","..♭7","...Δ7"],"noteGrayLevels":[20,40,75,100]}',
-  'http://localhost:3000/?settings={"key":"A","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","..♭9","...9","..♯9","..3","...11","..♯11","...5","..♭13","...13","..♯13","...Δ7"],"noteGrayLevels":[20,40,75,100]}',
+  'http://localhost:3000/?settings={"key":"D","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","...♭9","...9","..♭3","...3","...11","...♯11",".5","...♭13","...13","..♭7","...Δ7"],"noteGrayLevels":[20,40,75,100]}',
+  'http://localhost:3000/?settings={"key":"G","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","..♭9","...9","..♯9","..3","...11","..♯11","...5","..♭13","...13","..♯13","...Δ7"],"noteGrayLevels":[20,40,75,100]}',
   'http://localhost:3000/?settings={"key":"C","tuning":["E4","B3","G3","D3","A2","E2"],"notes":["1","...♭9","...9","...♯9","..3","...11","...♯11",".5","...♭13","...13","...♭7","..Δ7"],"noteGrayLevels":[20,40,75,100]}',
 ].join("\n");
 
