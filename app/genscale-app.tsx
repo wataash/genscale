@@ -534,6 +534,25 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
               </div>
 
               <label className="grid gap-2 text-sm font-semibold">
+                {t.notes}
+                <textarea
+                  className="min-h-72 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
+                  value={noteText}
+                  spellCheck={false}
+                  onChange={(event) => {
+                    setNoteText(event.target.value);
+                    setSettingValid(true);
+                  }}
+                />
+              </label>
+
+              {!tokenValid ? (
+                <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
+                  {t.tokenError}
+                </p>
+              ) : null}
+
+              <label className="grid gap-2 text-sm font-semibold">
                 {t.tuning}
                 <textarea
                   aria-label={t.tuning}
@@ -550,25 +569,6 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
               {!parsedTuning.valid ? (
                 <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
                   {t.tuningError}
-                </p>
-              ) : null}
-
-              <label className="grid gap-2 text-sm font-semibold">
-                {t.notes}
-                <textarea
-                  className="min-h-72 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
-                  value={noteText}
-                  spellCheck={false}
-                  onChange={(event) => {
-                    setNoteText(event.target.value);
-                    setSettingValid(true);
-                  }}
-                />
-              </label>
-
-              {!tokenValid ? (
-                <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
-                  {t.tokenError}
                 </p>
               ) : null}
 
