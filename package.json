@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest --run --coverage  $(: \"note: for human: pnpm vitest --ui\")",
-    "test:e2e": "playwright test  $(: \"note: for human: pnpm playwright --ui\")"
+    "test": "vitest --run --coverage  $(: \"note: for human: pnpm vitest --ui --coverage\")",
+    "test:e2e": "playwright test  $(: \"note: for human: pnpm playwright test --ui\")"
   },
   "dependencies": {
     "next": "16.2.4",

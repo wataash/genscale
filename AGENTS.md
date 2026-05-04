@@ -19,6 +19,7 @@ Open <http://localhost:3000> in a browser.
 ## Verification
 
 ```bash
+pnpm test
 pnpm lint
 pnpm build
 pnpm exec playwright test
