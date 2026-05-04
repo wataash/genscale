@@ -18,7 +18,7 @@ type NoteName =
 
 type NoteLabel = {
   text: string;
-  strong: boolean;
+  inScale: boolean;
 };
 
 type Fretboard = {
@@ -66,35 +66,35 @@ const ENHARMONICS: Record<string, NoteName> = {
 };
 
 const SCALE_PRESETS: Record<string, string[]> = {
-  M: ".1 ♭9 9 ♯9 .3 11 ♯11 .5 ♭13 13 ♭7 Δ7".split(" "),
-  "6": ".1 ♭9 9 ♯9 .3 11 ♯11 .5 ♭13 .6 ♭7 Δ7".split(" "),
-  "69": ".1 ♭9 .9 ♯9 .3 11 ♯11 .5 ♭13 .6 ♭7 Δ7".split(" "),
-  "7": ".1 ♭9 9 ♯9 .3 11 ♯11 .5 ♭13 13 .♭7 Δ7".split(" "),
-  M7: ".1 ♭9 9 ♯9 .3 11 ♯11 .5 ♭13 13 ♭7 .Δ7".split(" "),
-  b9: ".1 .♭9 9 ♯9 .3 11 ♯11 .5 ♭13 13 .♭7 Δ7".split(" "),
-  "9": ".1 ♭9 .9 ♯9 .3 11 ♯11 .5 ♭13 13 .♭7 Δ7".split(" "),
-  M9: ".1 ♭9 .9 ♯9 .3 11 ♯11 .5 ♭13 13 ♭7 .Δ7".split(" "),
-  "(9)": ".1 ♭9 9 ♯9 .3 11 ♯11 .5 ♭13 13 ♭7 Δ7".split(" "),
-  aug: ".1 ♭9 9 ♯9 .3 11 ♯11 5 .♯5 13 ♭7 Δ7".split(" "),
-  aug7: ".1 ♭9 9 ♯9 .3 11 ♯11 5 .♯5 13 .♭7 Δ7".split(" "),
-  augM7: ".1 ♭9 9 ♯9 .3 11 ♯11 5 .♯5 13 ♭7 .Δ7".split(" "),
-  m: ".1 ♭9 9 .♭3 3 11 ♯11 .5 ♭13 13 ♭7 Δ7".split(" "),
-  mb5: ".1 ♭9 9 .♭3 3 11 .♭5 5 ♭13 13 ♭7 Δ7".split(" "),
-  m6: ".1 ♭9 9 .♭3 3 11 ♯11 .5 ♭13 .6 ♭7 Δ7".split(" "),
-  m7: ".1 ♭9 9 .♭3 3 11 ♯11 .5 ♭13 13 .♭7 Δ7".split(" "),
-  mM7: ".1 ♭9 9 .♭3 3 11 ♯11 .5 ♭13 13 ♭7 .Δ7".split(" "),
-  m9: ".1 ♭9 .9 .♭3 3 11 ♯11 .5 ♭13 13 .♭7 Δ7".split(" "),
-  mM9: ".1 ♭9 .9 .♭3 3 11 ♯11 .5 ♭13 13 ♭7 .Δ7".split(" "),
-  "m(9)": ".1 ♭9 .9 .♭3 3 11 ♯11 .5 ♭13 13 ♭7 Δ7".split(" "),
-  hdim: ".1 ♭9 9 .♭3 3 11 .♭5 5 ♭13 13 .♭7 Δ7".split(" "),
-  dim: ".1 ♭9 9 .♭3 3 11 .♭5 5 ♭13 .𝄫7 ♭7 Δ7".split(" "),
-  mP: ".1 ♭9 9 .♭3 3 .4 ♭5 .5 ♭13 13 .♭7 Δ7".split(" "),
-  MP: ".1 ♭9 .9 ♯9 .3 11 ♯11 .5 ♭13 .13 ♭7 Δ7".split(" "),
-  hp5b: ".1 .♭9 9 ♯9 .3 .11 ♯11 .5 .♭13 13 .♭7 Δ7".split(" "),
-  lyd7: ".1 ♭9 .9 ♯9 .3 11 .♯11 .5 ♭13 .13 .♭7 Δ7".split(" "),
-  alt: ".1 .♭9 9 .♯9 .3 11 .♯11 5 .♭13 13 .♯13 Δ7".split(" "),
-  sloc: ".1 .♭9 9 .♭3 .♭11 11 .♭5 5 .♭13 13 .♭7 Δ7".split(" "),
-  cdim: ".1 .♭9 9 .♯9 .3 11 .♯11 .5 ♭13 .13 .♭7 Δ7".split(" "),
+  M: "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 _♭7 _Δ7".split(" "),
+  "6": "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 6 _♭7 _Δ7".split(" "),
+  "69": "1 _♭9 9 _♯9 3 _11 _♯11 5 _♭13 6 _♭7 _Δ7".split(" "),
+  "7": "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
+  M7: "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 _♭7 Δ7".split(" "),
+  b9: "1 ♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
+  "9": "1 _♭9 9 _♯9 3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
+  M9: "1 _♭9 9 _♯9 3 _11 _♯11 5 _♭13 _13 _♭7 Δ7".split(" "),
+  "(9)": "1 _♭9 _9 _♯9 3 _11 _♯11 5 _♭13 _13 _♭7 _Δ7".split(" "),
+  aug: "1 _♭9 _9 _♯9 3 _11 _♯11 _5 ♯5 _13 _♭7 _Δ7".split(" "),
+  aug7: "1 _♭9 _9 _♯9 3 _11 _♯11 _5 ♯5 _13 ♭7 _Δ7".split(" "),
+  augM7: "1 _♭9 _9 _♯9 3 _11 _♯11 _5 ♯5 _13 _♭7 Δ7".split(" "),
+  m: "1 _♭9 _9 ♭3 _3 _11 _♯11 5 _♭13 _13 _♭7 _Δ7".split(" "),
+  mb5: "1 _♭9 _9 ♭3 _3 _11 ♭5 _5 _♭13 _13 _♭7 _Δ7".split(" "),
+  m6: "1 _♭9 _9 ♭3 _3 _11 _♯11 5 _♭13 6 _♭7 _Δ7".split(" "),
+  m7: "1 _♭9 _9 ♭3 _3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
+  mM7: "1 _♭9 _9 ♭3 _3 _11 _♯11 5 _♭13 _13 _♭7 Δ7".split(" "),
+  m9: "1 _♭9 9 ♭3 _3 _11 _♯11 5 _♭13 _13 ♭7 _Δ7".split(" "),
+  mM9: "1 _♭9 9 ♭3 _3 _11 _♯11 5 _♭13 _13 _♭7 Δ7".split(" "),
+  "m(9)": "1 _♭9 9 ♭3 _3 _11 _♯11 5 _♭13 _13 _♭7 _Δ7".split(" "),
+  hdim: "1 _♭9 _9 ♭3 _3 _11 ♭5 _5 _♭13 _13 ♭7 _Δ7".split(" "),
+  dim: "1 _♭9 _9 ♭3 _3 _11 ♭5 _5 _♭13 𝄫7 _♭7 _Δ7".split(" "),
+  mP: "1 _♭9 _9 ♭3 _3 4 _♭5 5 _♭13 _13 ♭7 _Δ7".split(" "),
+  MP: "1 _♭9 9 _♯9 3 _11 _♯11 5 _♭13 13 _♭7 _Δ7".split(" "),
+  hp5b: "1 ♭9 _9 _♯9 3 11 _♯11 5 ♭13 _13 ♭7 _Δ7".split(" "),
+  lyd7: "1 _♭9 9 _♯9 3 _11 ♯11 5 _♭13 13 ♭7 _Δ7".split(" "),
+  alt: "1 ♭9 _9 ♯9 3 _11 ♯11 _5 ♭13 _13 ♯13 _Δ7".split(" "),
+  sloc: "1 ♭9 _9 ♭3 ♭11 _11 ♭5 _5 ♭13 _13 ♭7 _Δ7".split(" "),
+  cdim: "1 ♭9 _9 ♯9 3 _11 ♯11 5 _♭13 13 ♭7 _Δ7".split(" "),
 };
 
 const SCALE_ALIASES: Record<string, string> = {
@@ -154,8 +154,8 @@ function buildFretboard(): Fretboard {
 
 function parseLabels(tokens: string[]): NoteLabel[] {
   return tokens.map((token) => ({
-    text: token.startsWith(".") ? token.slice(1) : token,
-    strong: token.startsWith("."),
+    text: token.startsWith("_") ? token.slice(1) : token,
+    inScale: !token.startsWith("_"),
   }));
 }
 
@@ -210,10 +210,10 @@ export default function Home() {
         <header className="flex flex-col gap-3 border-b border-[#d8d0c2] pb-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#8a6245]">
-              Guitar Scale Board
+              genscale
             </p>
             <h1 className="text-3xl font-semibold tracking-normal text-[#24211d] sm:text-4xl">
-              ギター指板スケール生成
+              genscale
             </h1>
           </div>
           <button
@@ -221,7 +221,7 @@ export default function Home() {
             type="button"
             onClick={downloadSvg}
           >
-            SVGを書き出し
+            Export SVG
           </button>
         </header>
 
@@ -271,7 +271,7 @@ export default function Home() {
                   checked={customMode}
                   onChange={(event) => setCustomMode(event.target.checked)}
                 />
-                12音ラベルを編集
+                Edit 12 note labels
               </label>
 
               <label className="grid gap-2 text-sm font-semibold">
@@ -287,7 +287,7 @@ export default function Home() {
 
               {!tokenValid && customMode ? (
                 <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
-                  Notes は空白区切りで12個にしてください。
+                  Notes must contain exactly 12 space-separated tokens.
                 </p>
               ) : null}
             </div>
@@ -401,18 +401,20 @@ export default function Home() {
                           cx={cx}
                           cy={cy}
                           r={CANVAS.noteRadius}
-                          fill={note.strong ? "#2d4f47" : "#ece7dc"}
+                          fill={note.inScale ? "#2d4f47" : "#ece7dc"}
                         />
-                        <text
-                          x={cx}
-                          y={cy + 4}
-                          textAnchor="middle"
-                          fill={note.strong ? "#ffffff" : "#736b60"}
-                          fontSize="16"
-                          fontWeight="700"
-                        >
-                          {note.text}
-                        </text>
+                        {note.text ? (
+                          <text
+                            x={cx}
+                            y={cy + 4}
+                            textAnchor="middle"
+                            fill={note.inScale ? "#ffffff" : "#736b60"}
+                            fontSize="16"
+                            fontWeight="700"
+                          >
+                            {note.text}
+                          </text>
+                        ) : null}
                       </g>
                     );
                   }),

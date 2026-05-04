@@ -1,16 +1,16 @@
-# Guitar Scale Board
+# genscale
 
-ギター指板上にスケールやコードトーンを表示し、SVGとして書き出せるNext.jsアプリです。
+genscale is a Next.js app for visualizing scale and chord-tone labels on a guitar fretboard and exporting the result as SVG.
 
-## 開発
+## Development
 
 ```bash
 pnpm dev
 ```
 
-ブラウザで <http://localhost:3000> を開きます。
+Open <http://localhost:3000> in a browser.
 
-## 検証
+## Verification
 
 ```bash
 pnpm lint
@@ -18,6 +18,6 @@ pnpm build
 pnpm exec playwright test
 ```
 
-## ドキュメント
+## Documentation
 
-- [アプリ仕様](docs/guitar-scale-web.md)
+- [App specification](docs/guitar-scale-web.md)

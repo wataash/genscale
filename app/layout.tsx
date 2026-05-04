@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Guitar Scale Board",
+  title: "genscale",
   description: "Interactive guitar fretboard scale SVG generator",
 };
 
