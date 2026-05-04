@@ -301,8 +301,8 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
           </div>
         </header>
 
-        <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="rounded-lg border border-[#d8d0c2] bg-white p-4 shadow-sm">
+        <div className="grid gap-4">
+          <aside className="order-2 rounded-lg border border-[#d8d0c2] bg-white p-4 shadow-sm">
             <div className="grid gap-4">
               <label className="grid gap-2 text-sm font-semibold">
                 {t.key}
@@ -369,7 +369,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
             </div>
           </aside>
 
-          <section className="overflow-hidden rounded-lg border border-[#d8d0c2] bg-white shadow-sm">
+          <section className="order-1 overflow-hidden rounded-lg border border-[#d8d0c2] bg-white shadow-sm">
             <div className="overflow-x-auto p-4">
               <svg
                 id="fretboard-svg"

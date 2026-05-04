@@ -22,6 +22,31 @@ test("updates the fretboard label when key and scale change", async ({ page }) =
   ).toBeVisible();
 });
 
+test("keeps the fretboard above the controls at small and large widths", async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 1280, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/en");
+
+    const fretboardBox = await page
+      .getByLabel("A m7 guitar scale fretboard")
+      .boundingBox();
+    const keyBox = await page
+      .getByRole("combobox", { name: "Key" })
+      .boundingBox();
+
+    expect(fretboardBox).not.toBeNull();
+    expect(keyBox).not.toBeNull();
+    if (!fretboardBox || !keyBox) throw new Error("Missing layout element");
+
+    expect(fretboardBox.y + fretboardBox.height).toBeLessThan(keyBox.y);
+  }
+});
+
 test("supports underscore tokens for out-of-scale and hidden labels", async ({
   page,
 }) => {
