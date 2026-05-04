@@ -38,6 +38,14 @@ type GenscaleAppProps = {
   locale: Locale;
 };
 
+type AppSettings = {
+  key: string;
+  scale: string;
+  tuning: string[];
+  customMode: boolean;
+  notes: string[];
+};
+
 const TRANSLATIONS: Record<
   Locale,
   {
@@ -47,8 +55,10 @@ const TRANSLATIONS: Record<
     tuning: string;
     editLabels: string;
     notes: string;
+    settingEditor: string;
     tokenError: string;
     tuningError: string;
+    settingError: string;
     custom: string;
     fretboardLabel: (key: string, scale: string) => string;
     localeLabel: string;
@@ -61,8 +71,10 @@ const TRANSLATIONS: Record<
     tuning: "Tuning",
     editLabels: "Edit 12 note labels",
     notes: "Notes",
+    settingEditor: "Setting editor",
     tokenError: "Notes must contain exactly 12 line-separated tokens.",
     tuningError: "Tuning must contain one note with octave per line.",
+    settingError: "Setting editor must contain valid genscale JSON.",
     custom: "custom",
     fretboardLabel: (key, scale) => `${key} ${scale} guitar scale fretboard`,
     localeLabel: "Language",
@@ -74,8 +86,10 @@ const TRANSLATIONS: Record<
     tuning: "チューニング",
     editLabels: "12音ラベルを編集",
     notes: "Notes",
+    settingEditor: "設定エディタ",
     tokenError: "Notes は行区切りで12個にしてください。",
     tuningError: "チューニングは1行に1つ、音名とオクターブで指定してください。",
+    settingError: "設定エディタには有効な genscale JSON を入力してください。",
     custom: "カスタム",
     fretboardLabel: (key, scale) => `${key} ${scale} ギター指板スケール`,
     localeLabel: "言語",
@@ -151,6 +165,38 @@ const SCALE_PRESETS: Record<string, string[]> = {
   alt: "1 ♭9 _9 ♯9 3 _11 ♯11 _5 ♭13 _13 ♯13 _Δ7".split(" "),
   sloc: "1 ♭9 _9 ♭3 ♭11 _11 ♭5 _5 ♭13 _13 ♭7 _Δ7".split(" "),
   cdim: "1 ♭9 _9 ♯9 3 _11 ♯11 5 _♭13 13 ♭7 _Δ7".split(" "),
+};
+
+const SCALE_DISPLAY_NAMES: Record<string, string> = {
+  M: "Major",
+  "6": "Major 6",
+  "69": "Major 6/9",
+  "7": "Dominant 7",
+  M7: "Major 7",
+  b9: "Dominant 7 flat 9",
+  "9": "Dominant 9",
+  M9: "Major 9",
+  "(9)": "Major add 9",
+  aug: "Augmented",
+  aug7: "Augmented 7",
+  augM7: "Augmented Major 7",
+  m: "Minor",
+  mb5: "Minor flat 5",
+  m6: "Minor 6",
+  m7: "Minor 7",
+  mM7: "Minor Major 7",
+  m9: "Minor 9",
+  mM9: "Minor Major 9",
+  "m(9)": "Minor add 9",
+  hdim: "Half-diminished",
+  dim: "Diminished",
+  mP: "Minor Pentatonic",
+  MP: "Major Pentatonic",
+  hp5b: "Harmonic Minor Perfect 5 Below",
+  lyd7: "Lydian Dominant",
+  alt: "Altered",
+  sloc: "Super Locrian",
+  cdim: "Combination Diminished",
 };
 
 const SCALE_ALIASES: Record<string, string> = {
@@ -244,8 +290,66 @@ function scaleTokens(scale: string): string[] {
   return SCALE_PRESETS[SCALE_ALIASES[scale] ?? scale] ?? SCALE_PRESETS.m7;
 }
 
+function scaleDisplayName(scale: string): string {
+  return SCALE_DISPLAY_NAMES[SCALE_ALIASES[scale] ?? scale] ?? scale;
+}
+
 function noteTokensText(scale: string): string {
   return scaleTokens(scale).join("\n");
+}
+
+function linesFromText(text: string): string[] {
+  return text
+    .split(/\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function settingsText(settings: AppSettings): string {
+  return JSON.stringify(settings, null, 2);
+}
+
+function readStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    return null;
+  }
+
+  return value;
+}
+
+function parseSettingsText(text: string): AppSettings | null {
+  try {
+    const value: unknown = JSON.parse(text);
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+    const settings = value as Partial<Record<keyof AppSettings, unknown>>;
+    const tuning = readStringArray(settings.tuning);
+    const notes = readStringArray(settings.notes);
+
+    if (
+      typeof settings.key !== "string" ||
+      typeof settings.scale !== "string" ||
+      typeof settings.customMode !== "boolean" ||
+      !tuning ||
+      !notes
+    ) {
+      return null;
+    }
+
+    if (!ENHARMONICS[settings.key] || !SCALE_PRESETS[SCALE_ALIASES[settings.scale] ?? settings.scale]) {
+      return null;
+    }
+
+    return {
+      key: settings.key,
+      scale: SCALE_ALIASES[settings.scale] ?? settings.scale,
+      tuning,
+      customMode: settings.customMode,
+      notes,
+    };
+  } catch {
+    return null;
+  }
 }
 
 function serializeSvg(svg: SVGSVGElement | null): string {
@@ -260,6 +364,16 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   const [tuning, setTuning] = useState(DEFAULT_TUNING);
   const [customMode, setCustomMode] = useState(false);
   const [customNotes, setCustomNotes] = useState(noteTokensText("m7"));
+  const [settingEditorText, setSettingEditorText] = useState(() =>
+    settingsText({
+      key: "A",
+      scale: "m7",
+      tuning: linesFromText(DEFAULT_TUNING),
+      customMode: false,
+      notes: scaleTokens("m7"),
+    }),
+  );
+  const [settingValid, setSettingValid] = useState(true);
   const parsedTuning = useMemo(() => parseTuning(tuning), [tuning]);
   const board = useMemo(
     () => buildFretboard(parsedTuning.noteIndices),
@@ -302,6 +416,37 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
     link.download = `${key}-${customMode ? "custom" : scale}.svg`;
     link.click();
     URL.revokeObjectURL(href);
+  }
+
+  function syncSettingEditor(settings: Partial<AppSettings>) {
+    setSettingEditorText(
+      settingsText({
+        key,
+        scale,
+        tuning: linesFromText(tuning),
+        customMode,
+        notes: linesFromText(customNotes),
+        ...settings,
+      }),
+    );
+    setSettingValid(true);
+  }
+
+  function applySettingEditor(text: string) {
+    setSettingEditorText(text);
+
+    const settings = parseSettingsText(text);
+    if (!settings) {
+      setSettingValid(false);
+      return;
+    }
+
+    setKey(settings.key);
+    setScale(settings.scale);
+    setTuning(settings.tuning.join("\n"));
+    setCustomMode(settings.customMode);
+    setCustomNotes(settings.notes.join("\n"));
+    setSettingValid(true);
   }
 
   return (
@@ -360,7 +505,10 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   aria-label={t.key}
                   className="h-10 rounded-md border border-[#c9bda9] bg-white px-3 text-base"
                   value={key}
-                  onChange={(event) => setKey(event.target.value)}
+                  onChange={(event) => {
+                    setKey(event.target.value);
+                    syncSettingEditor({ key: event.target.value });
+                  }}
                 >
                   {KEY_NAMES.map((name) => (
                     <option key={name} value={name}>
@@ -378,13 +526,18 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   value={scale}
                   disabled={customMode}
                   onChange={(event) => {
+                    const nextNotes = scaleTokens(event.target.value);
                     setScale(event.target.value);
-                    setCustomNotes(noteTokensText(event.target.value));
+                    setCustomNotes(nextNotes.join("\n"));
+                    syncSettingEditor({
+                      scale: event.target.value,
+                      notes: nextNotes,
+                    });
                   }}
                 >
                   {SCALE_NAMES.map((name) => (
                     <option key={name} value={name}>
-                      {name}
+                      {scaleDisplayName(name)}
                     </option>
                   ))}
                 </select>
@@ -397,7 +550,10 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   className="min-h-36 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
                   value={tuning}
                   spellCheck={false}
-                  onChange={(event) => setTuning(event.target.value)}
+                  onChange={(event) => {
+                    setTuning(event.target.value);
+                    syncSettingEditor({ tuning: linesFromText(event.target.value) });
+                  }}
                 />
               </label>
 
@@ -412,7 +568,10 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   className="size-4 accent-[#2d4f47]"
                   type="checkbox"
                   checked={customMode}
-                  onChange={(event) => setCustomMode(event.target.checked)}
+                  onChange={(event) => {
+                    setCustomMode(event.target.checked);
+                    syncSettingEditor({ customMode: event.target.checked });
+                  }}
                 />
                 {t.editLabels}
               </label>
@@ -424,13 +583,33 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   value={customNotes}
                   disabled={!customMode}
                   spellCheck={false}
-                  onChange={(event) => setCustomNotes(event.target.value)}
+                  onChange={(event) => {
+                    setCustomNotes(event.target.value);
+                    syncSettingEditor({ notes: linesFromText(event.target.value) });
+                  }}
                 />
               </label>
 
               {!tokenValid && customMode ? (
                 <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
                   {t.tokenError}
+                </p>
+              ) : null}
+
+              <label className="grid gap-2 text-sm font-semibold">
+                {t.settingEditor}
+                <textarea
+                  aria-label={t.settingEditor}
+                  className="min-h-72 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
+                  value={settingEditorText}
+                  spellCheck={false}
+                  onChange={(event) => applySettingEditor(event.target.value)}
+                />
+              </label>
+
+              {!settingValid ? (
+                <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
+                  {t.settingError}
                 </p>
               ) : null}
             </div>
@@ -440,7 +619,10 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
             <div className="overflow-x-auto p-4">
               <svg
                 id="fretboard-svg"
-                aria-label={t.fretboardLabel(key, customMode ? t.custom : scale)}
+                aria-label={t.fretboardLabel(
+                  key,
+                  customMode ? t.custom : scaleDisplayName(scale),
+                )}
                 className="block min-w-[980px]"
                 width={canvasW}
                 height={canvasH}

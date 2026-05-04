@@ -7,7 +7,7 @@ test("renders the guitar scale board", async ({ page }) => {
     page.getByRole("heading", { name: "genscale" }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("A m7 guitar scale fretboard"),
+    page.getByLabel("A Minor 7 guitar scale fretboard"),
   ).toBeVisible();
 });
 
@@ -18,8 +18,27 @@ test("updates the fretboard label when key and scale change", async ({ page }) =
   await page.getByRole("combobox", { name: "Scale" }).selectOption("M7");
 
   await expect(
-    page.getByLabel("C M7 guitar scale fretboard"),
+    page.getByLabel("C Major 7 guitar scale fretboard"),
   ).toBeVisible();
+});
+
+test("shows formal scale names while keeping compact scale identifiers", async ({
+  page,
+}) => {
+  await page.goto("/en");
+
+  const scaleSelect = page.getByRole("combobox", { name: "Scale" });
+  await expect(scaleSelect.locator("option", { hasText: "Altered" })).toHaveAttribute(
+    "value",
+    "alt",
+  );
+
+  await scaleSelect.selectOption("alt");
+
+  await expect(
+    page.getByLabel("A Altered guitar scale fretboard"),
+  ).toBeVisible();
+  await expect(scaleSelect).toHaveValue("alt");
 });
 
 test("supports editable tuning and string count", async ({ page }) => {
@@ -35,6 +54,52 @@ test("supports editable tuning and string count", async ({ page }) => {
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
 });
 
+test("syncs the setting editor with the controls", async ({ page }) => {
+  await page.goto("/en");
+
+  const settingEditor = page.getByLabel("Setting editor");
+  let settings = JSON.parse(await settingEditor.inputValue());
+  expect(settings).toMatchObject({
+    key: "A",
+    scale: "m7",
+    customMode: false,
+  });
+  expect(settings.tuning).toEqual(["E4", "B3", "G3", "D3", "A2", "E2"]);
+
+  await page.getByRole("combobox", { name: "Key" }).selectOption("C");
+  await page.getByRole("combobox", { name: "Scale" }).selectOption("alt");
+
+  settings = JSON.parse(await settingEditor.inputValue());
+  expect(settings).toMatchObject({
+    key: "C",
+    scale: "alt",
+  });
+
+  await settingEditor.fill(
+    JSON.stringify(
+      {
+        key: "D",
+        scale: "M7",
+        tuning: ["G3", "D3", "A2", "E2"],
+        customMode: true,
+        notes: ["1", "_", "_", "♭3", "_", "_", "_", "5", "_", "_", "♭7", "_"],
+      },
+      null,
+      2,
+    ),
+  );
+
+  await expect(page.getByRole("combobox", { name: "Key" })).toHaveValue("D");
+  await expect(page.getByRole("combobox", { name: "Scale" })).toHaveValue("M7");
+  await expect(page.getByLabel("Tuning")).toHaveValue("G3\nD3\nA2\nE2");
+  await expect(page.getByLabel("Edit 12 note labels")).toBeChecked();
+  await expect(page.getByLabel("Notes")).toHaveValue(
+    "1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_",
+  );
+  await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
+  await expect(page.getByLabel("D custom guitar scale fretboard")).toBeVisible();
+});
+
 test("keeps the fretboard above the controls at small and large widths", async ({
   page,
 }) => {
@@ -46,7 +111,7 @@ test("keeps the fretboard above the controls at small and large widths", async (
     await page.goto("/en");
 
     const fretboardBox = await page
-      .getByLabel("A m7 guitar scale fretboard")
+      .getByLabel("A Minor 7 guitar scale fretboard")
       .boundingBox();
     const keyBox = await page
       .getByRole("combobox", { name: "Key" })
@@ -101,5 +166,6 @@ test("renders Japanese UI at /ja", async ({ page }) => {
   await expect(page.getByRole("combobox", { name: "キー" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "スケール" })).toBeVisible();
   await expect(page.getByLabel("チューニング")).toBeVisible();
-  await expect(page.getByLabel("A m7 ギター指板スケール")).toBeVisible();
+  await expect(page.getByLabel("設定エディタ")).toBeVisible();
+  await expect(page.getByLabel("A Minor 7 ギター指板スケール")).toBeVisible();
 });
