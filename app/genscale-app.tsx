@@ -56,12 +56,15 @@ type TuningPreset = {
   notes: string[];
 };
 
+const CUSTOM_SCALE = "custom";
+
 const TRANSLATIONS: Record<
   Locale,
   {
     exportSvg: string;
     key: string;
     scale: string;
+    customScale: string;
     tuning: string;
     tuningPreset: string;
     customTuning: string;
@@ -78,6 +81,7 @@ const TRANSLATIONS: Record<
     exportSvg: "Export SVG",
     key: "Key",
     scale: "Scale",
+    customScale: "Custom",
     tuning: "Tuning",
     tuningPreset: "Preset",
     customTuning: "Custom",
@@ -93,6 +97,7 @@ const TRANSLATIONS: Record<
     exportSvg: "SVGを書き出し",
     key: "キー",
     scale: "スケール",
+    customScale: "カスタム",
     tuning: "チューニング",
     tuningPreset: "プリセット",
     customTuning: "カスタム",
@@ -204,36 +209,39 @@ const SCALE_PRESETS: Record<string, string[]> = {
   cdim: "1 ♭9 ...9 ♯9 3 ...11 ♯11 5 ...♭13 13 ♭7 ...Δ7".split(" "),
 };
 
-const SCALE_DISPLAY_NAMES: Record<string, string> = {
-  M: "Major",
-  "6": "Major 6",
-  "69": "Major 6/9",
-  "7": "Dominant 7",
-  M7: "Major 7",
-  b9: "Dominant 7 flat 9",
-  "9": "Dominant 9",
-  M9: "Major 9",
-  "(9)": "Major add 9",
-  aug: "Augmented",
-  aug7: "Augmented 7",
-  augM7: "Augmented Major 7",
-  m: "Minor",
-  mb5: "Minor flat 5",
-  m6: "Minor 6",
-  m7: "Minor 7",
-  mM7: "Minor Major 7",
-  m9: "Minor 9",
-  mM9: "Minor Major 9",
-  "m(9)": "Minor add 9",
-  hdim: "Half-diminished",
-  dim: "Diminished",
-  mP: "Minor Pentatonic",
-  MP: "Major Pentatonic",
-  hp5b: "Harmonic Minor Perfect 5 Below",
-  lyd7: "Lydian Dominant",
-  alt: "Altered",
-  sloc: "Super Locrian",
-  cdim: "Combination Diminished",
+const SCALE_DISPLAY_NAMES: Record<string, Record<Locale, string>> = {
+  M: { en: "Major", ja: "メジャー" },
+  "6": { en: "Major 6", ja: "メジャー6" },
+  "69": { en: "Major 6/9", ja: "メジャー6/9" },
+  "7": { en: "Dominant 7", ja: "ドミナント7" },
+  M7: { en: "Major 7", ja: "メジャー7" },
+  b9: { en: "Dominant 7 flat 9", ja: "ドミナント7フラット9" },
+  "9": { en: "Dominant 9", ja: "ドミナント9" },
+  M9: { en: "Major 9", ja: "メジャー9" },
+  "(9)": { en: "Major add 9", ja: "メジャー add 9" },
+  aug: { en: "Augmented", ja: "オーギュメント" },
+  aug7: { en: "Augmented 7", ja: "オーギュメント7" },
+  augM7: { en: "Augmented Major 7", ja: "オーギュメントメジャー7" },
+  m: { en: "Minor", ja: "マイナー" },
+  mb5: { en: "Minor flat 5", ja: "マイナーフラット5" },
+  m6: { en: "Minor 6", ja: "マイナー6" },
+  m7: { en: "Minor 7", ja: "マイナー7" },
+  mM7: { en: "Minor Major 7", ja: "マイナーメジャー7" },
+  m9: { en: "Minor 9", ja: "マイナー9" },
+  mM9: { en: "Minor Major 9", ja: "マイナーメジャー9" },
+  "m(9)": { en: "Minor add 9", ja: "マイナー add 9" },
+  hdim: { en: "Half-diminished", ja: "ハーフディミニッシュ" },
+  dim: { en: "Diminished", ja: "ディミニッシュ" },
+  mP: { en: "Minor Pentatonic", ja: "マイナーペンタトニック" },
+  MP: { en: "Major Pentatonic", ja: "メジャーペンタトニック" },
+  hp5b: {
+    en: "Harmonic Minor Perfect 5 Below",
+    ja: "ハーモニックマイナーパーフェクト5ビロウ",
+  },
+  lyd7: { en: "Lydian Dominant", ja: "リディアンドミナント" },
+  alt: { en: "Altered", ja: "オルタード" },
+  sloc: { en: "Super Locrian", ja: "スーパーロクリアン" },
+  cdim: { en: "Combination Diminished", ja: "コンビネーションディミニッシュ" },
 };
 
 const SCALE_ALIASES: Record<string, string> = {
@@ -345,8 +353,8 @@ function scaleTokens(scale: string): string[] {
   return SCALE_PRESETS[SCALE_ALIASES[scale] ?? scale] ?? SCALE_PRESETS.m7;
 }
 
-function scaleDisplayName(scale: string): string {
-  return SCALE_DISPLAY_NAMES[SCALE_ALIASES[scale] ?? scale] ?? scale;
+function scaleDisplayName(scale: string, locale: Locale): string {
+  return SCALE_DISPLAY_NAMES[SCALE_ALIASES[scale] ?? scale]?.[locale] ?? scale;
 }
 
 function noteTokensText(scale: string): string {
@@ -358,6 +366,18 @@ function linesFromText(text: string): string[] {
     .split(/\n/)
     .map((line) => line.trim())
     .filter(Boolean);
+}
+
+function tokenListsEqual(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((token, index) => token === b[index]);
+}
+
+function matchingScaleName(notes: string[]): string | null {
+  return SCALE_NAMES.find((name) => tokenListsEqual(notes, scaleTokens(name))) ?? null;
+}
+
+function scaleFromNotes(notes: string[]): string {
+  return matchingScaleName(notes) ?? CUSTOM_SCALE;
 }
 
 function settingsText(settings: AppSettings): string {
@@ -390,13 +410,18 @@ function parseSettingsText(text: string): AppSettings | null {
       return null;
     }
 
-    if (!ENHARMONICS[settings.key] || !SCALE_PRESETS[SCALE_ALIASES[settings.scale] ?? settings.scale]) {
+    const settingScale = SCALE_ALIASES[settings.scale] ?? settings.scale;
+
+    if (
+      !ENHARMONICS[settings.key] ||
+      (settingScale !== CUSTOM_SCALE && !SCALE_PRESETS[settingScale])
+    ) {
       return null;
     }
 
     return {
       key: settings.key,
-      scale: SCALE_ALIASES[settings.scale] ?? settings.scale,
+      scale: settingScale,
       tuning,
       notes,
     };
@@ -454,6 +479,8 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   const tuningPresetId =
     TUNING_PRESETS.find((preset) => preset.notes.join("\n") === tuning)?.id ??
     "custom";
+  const currentScaleDisplayName =
+    scale === CUSTOM_SCALE ? t.customScale : scaleDisplayName(scale, locale);
   const currentSettingEditorText = settingsText({
     key,
     scale,
@@ -486,7 +513,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
     }
 
     setKey(settings.key);
-    setScale(settings.scale);
+    setScale(scaleFromNotes(settings.notes));
     setTuning(settings.tuning.join("\n"));
     setNoteText(settings.notes.join("\n"));
     setSettingValid(true);
@@ -574,9 +601,12 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                       setSettingValid(true);
                     }}
                   >
+                    {scale === CUSTOM_SCALE ? (
+                      <option value={CUSTOM_SCALE}>{t.customScale}</option>
+                    ) : null}
                     {SCALE_NAMES.map((name) => (
                       <option key={name} value={name}>
-                        {scaleDisplayName(name)}
+                        {scaleDisplayName(name, locale)}
                       </option>
                     ))}
                   </select>
@@ -590,7 +620,9 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   value={noteText}
                   spellCheck={false}
                   onChange={(event) => {
-                    setNoteText(event.target.value);
+                    const nextText = event.target.value;
+                    setNoteText(nextText);
+                    setScale(scaleFromNotes(linesFromText(nextText)));
                     setSettingValid(true);
                   }}
                 />
@@ -667,7 +699,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
             <div className="overflow-x-auto p-4">
               <svg
                 id="fretboard-svg"
-                aria-label={t.fretboardLabel(key, scaleDisplayName(scale))}
+                aria-label={t.fretboardLabel(key, currentScaleDisplayName)}
                 className="block w-[1008px] max-w-none sm:w-[1440px]"
                 width={canvasW}
                 height={canvasH}

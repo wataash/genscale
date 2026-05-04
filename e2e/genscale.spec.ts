@@ -113,13 +113,15 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   );
 
   await expect(page.getByRole("combobox", { name: "Key" })).toHaveValue("D");
-  await expect(page.getByRole("combobox", { name: "Scale" })).toHaveValue("M7");
+  await expect(page.getByRole("combobox", { name: "Scale" })).toHaveValue(
+    "custom",
+  );
   await expect(page.getByLabel("Tuning")).toHaveValue("G3\nD3\nA2\nE2");
   await expect(page.getByLabel("Notes")).toHaveValue(
     "1\n...\n...\n♭3\n...\n...\n...\n5\n...\n...\n♭7\n...",
   );
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
-  await expect(page.getByLabel("D Major 7 guitar scale fretboard")).toBeVisible();
+  await expect(page.getByLabel("D Custom guitar scale fretboard")).toBeVisible();
 });
 
 test("keeps the fretboard above the controls at small and large widths", async ({
@@ -195,7 +197,10 @@ test("supports editable dot tokens for out-of-scale and hidden labels", async ({
   await expect(notes).toHaveValue(
     "1\n...\n...\n♭3\n...\n...\n...\n5\n...\n...\n♭7\n...",
   );
-  await expect(page.getByLabel("A Minor 7 guitar scale fretboard")).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Scale" })).toHaveValue(
+    "custom",
+  );
+  await expect(page.getByLabel("A Custom guitar scale fretboard")).toBeVisible();
   await expect(page.locator("svg text").filter({ hasText: "♭9" })).toHaveCount(0);
 });
 
@@ -209,7 +214,12 @@ test("renders Japanese UI at /ja", async ({ page }) => {
   await expect(
     page.getByRole("combobox", { name: "プリセット" }),
   ).toBeVisible();
+  await expect(
+    page
+      .getByRole("combobox", { name: "スケール" })
+      .locator("option", { hasText: "オルタード" }),
+  ).toHaveAttribute("value", "alt");
   await expect(page.getByLabel("チューニング")).toBeVisible();
   await expect(page.getByLabel("設定エディタ")).toBeVisible();
-  await expect(page.getByLabel("A Minor 7 ギター指板スケール")).toBeVisible();
+  await expect(page.getByLabel("A マイナー7 ギター指板スケール")).toBeVisible();
 });
