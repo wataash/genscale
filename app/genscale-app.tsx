@@ -366,7 +366,7 @@ export default function GenscaleApp({
               ) : null}
 
               <button
-                className={`w-fit rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition active:translate-y-px active:scale-[0.99] ${
+                className={`inline-grid w-fit rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition active:translate-y-px active:scale-[0.99] ${
                   copySettingsStatus === "copied"
                     ? "bg-[#3f6b57] shadow-inner"
                     : copySettingsStatus === "failed"
@@ -376,7 +376,16 @@ export default function GenscaleApp({
                 type="button"
                 onClick={copySettingsUrl}
               >
-                <span aria-live="polite">
+                <span
+                  aria-hidden="true"
+                  className="col-start-1 row-start-1 invisible"
+                >
+                  {t.copySettingsUrl}
+                </span>
+                <span
+                  aria-live="polite"
+                  className="col-start-1 row-start-1 text-center"
+                >
                   {copySettingsStatus === "copying"
                     ? t.copySettingsUrlCopying
                     : copySettingsStatus === "copied"
