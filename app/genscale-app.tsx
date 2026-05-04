@@ -45,7 +45,6 @@ type GenscaleAppProps = {
 
 type AppSettings = {
   key: string;
-  scale: string;
   tuning: string[];
   notes: string[];
 };
@@ -177,110 +176,176 @@ const ENHARMONICS: Record<string, NoteName> = {
   "G#": "G#",
 };
 
-const SCALE_PRESETS: Record<string, string[]> = {
-  M: "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 ...Δ7".split(" "),
-  "6": "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 6 ...♭7 ...Δ7".split(" "),
-  "69": "1 ...♭9 9 ...♯9 3 ...11 ...♯11 5 ...♭13 6 ...♭7 ...Δ7".split(" "),
-  "7": "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7".split(" "),
-  M7: "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 Δ7".split(" "),
-  b9: "1 ♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7".split(" "),
-  "9": "1 ...♭9 9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7".split(" "),
-  M9: "1 ...♭9 9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 Δ7".split(" "),
-  "(9)": "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 ...Δ7".split(" "),
-  aug: "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 ...5 ♯5 ...13 ...♭7 ...Δ7".split(" "),
-  aug7: "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 ...5 ♯5 ...13 ♭7 ...Δ7".split(" "),
-  augM7: "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 ...5 ♯5 ...13 ...♭7 Δ7".split(" "),
-  m: "1 ...♭9 ...9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 ...Δ7".split(" "),
-  mb5: "1 ...♭9 ...9 ♭3 ...3 ...11 ♭5 ...5 ...♭13 ...13 ...♭7 ...Δ7".split(" "),
-  m6: "1 ...♭9 ...9 ♭3 ...3 ...11 ...♯11 5 ...♭13 6 ...♭7 ...Δ7".split(" "),
-  m7: "1 ...♭9 ...9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7".split(" "),
-  mM7: "1 ...♭9 ...9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 Δ7".split(" "),
-  m9: "1 ...♭9 9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7".split(" "),
-  mM9: "1 ...♭9 9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 Δ7".split(" "),
-  "m(9)": "1 ...♭9 9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 ...Δ7".split(" "),
-  hdim: "1 ...♭9 ...9 ♭3 ...3 ...11 ♭5 ...5 ...♭13 ...13 ♭7 ...Δ7".split(" "),
-  dim: "1 ...♭9 ...9 ♭3 ...3 ...11 ♭5 ...5 ...♭13 𝄫7 ...♭7 ...Δ7".split(" "),
-  mP: "1 ...♭9 ...9 ♭3 ...3 4 ...♭5 5 ...♭13 ...13 ♭7 ...Δ7".split(" "),
-  MP: "1 ...♭9 9 ...♯9 3 ...11 ...♯11 5 ...♭13 13 ...♭7 ...Δ7".split(" "),
-  hp5b: "1 ♭9 ...9 ...♯9 3 11 ...♯11 5 ♭13 ...13 ♭7 ...Δ7".split(" "),
-  lyd7: "1 ...♭9 9 ...♯9 3 ...11 ♯11 5 ...♭13 13 ♭7 ...Δ7".split(" "),
-  alt: "1 ♭9 ...9 ♯9 3 ...11 ♯11 ...5 ♭13 ...13 ♯13 ...Δ7".split(" "),
-  sloc: "1 ♭9 ...9 ♭3 ♭11 ...11 ♭5 ...5 ♭13 ...13 ♭7 ...Δ7".split(" "),
-  cdim: "1 ♭9 ...9 ♯9 3 ...11 ♯11 5 ...♭13 13 ♭7 ...Δ7".split(" "),
-};
+const SCALE_DEFINITIONS = [
+  [
+    "M",
+    { en: "Major", ja: "メジャー" },
+    "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 ...Δ7",
+  ],
+  [
+    "6",
+    { en: "6", ja: "6" },
+    "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 6 ...♭7 ...Δ7",
+  ],
+  [
+    "69",
+    { en: "69", ja: "69" },
+    "1 ...♭9 9 ...♯9 3 ...11 ...♯11 5 ...♭13 6 ...♭7 ...Δ7",
+  ],
+  [
+    "7",
+    { en: "7", ja: "7" },
+    "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "M7",
+    { en: "Δ7", ja: "Δ7" },
+    "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 Δ7",
+  ],
+  [
+    "b9",
+    { en: "♭9", ja: "♭9" },
+    "1 ♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "9",
+    { en: "9", ja: "9" },
+    "1 ...♭9 9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "M9",
+    { en: "Δ9", ja: "Δ9" },
+    "1 ...♭9 9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 Δ7",
+  ],
+  [
+    "(9)",
+    { en: "(9)", ja: "(9)" },
+    "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 ...Δ7",
+  ],
+  [
+    "aug",
+    { en: "aug", ja: "aug" },
+    "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 ...5 ♯5 ...13 ...♭7 ...Δ7",
+  ],
+  [
+    "aug7",
+    { en: "aug7 (7#5)", ja: "aug7 (7#5)" },
+    "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 ...5 ♯5 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "augM7",
+    { en: "augΔ7 (Δ7#5)", ja: "augΔ7 (Δ7#5)" },
+    "1 ...♭9 ...9 ...♯9 3 ...11 ...♯11 ...5 ♯5 ...13 ...♭7 Δ7",
+  ],
+  [
+    "m",
+    { en: "m", ja: "m" },
+    "1 ...♭9 ...9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 ...Δ7",
+  ],
+  [
+    "mb5",
+    {
+      en: "o (m♭5, Diminished Triad)",
+      ja: "o (m♭5, ディミニッシュト・トライアド)",
+    },
+    "1 ...♭9 ...9 ♭3 ...3 ...11 ♭5 ...5 ...♭13 ...13 ...♭7 ...Δ7",
+  ],
+  [
+    "m6",
+    { en: "m6", ja: "m6" },
+    "1 ...♭9 ...9 ♭3 ...3 ...11 ...♯11 5 ...♭13 6 ...♭7 ...Δ7",
+  ],
+  [
+    "m7",
+    { en: "m7", ja: "m7" },
+    "1 ...♭9 ...9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "mM7",
+    { en: "mΔ7", ja: "mΔ7" },
+    "1 ...♭9 ...9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 Δ7",
+  ],
+  [
+    "m9",
+    { en: "m9", ja: "m9" },
+    "1 ...♭9 9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "mM9",
+    { en: "mΔ9", ja: "mΔ9" },
+    "1 ...♭9 9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 Δ7",
+  ],
+  [
+    "m(9)",
+    { en: "m(9)", ja: "m(9)" },
+    "1 ...♭9 9 ♭3 ...3 ...11 ...♯11 5 ...♭13 ...13 ...♭7 ...Δ7",
+  ],
+  [
+    "hdim",
+    {
+      en: "ø7 (m7♭5, Half-Diminished Seventh)",
+      ja: "ø7 (m7♭5, ハーフディミニッシュ)",
+    },
+    "1 ...♭9 ...9 ♭3 ...3 ...11 ♭5 ...5 ...♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "dim",
+    { en: "o7 (Diminished)", ja: "o7 (ディミニッシュ)" },
+    "1 ...♭9 ...9 ♭3 ...3 ...11 ♭5 ...5 ...♭13 𝄫7 ...♭7 ...Δ7",
+  ],
+  [
+    "mP",
+    { en: "Minor Pentatonic", ja: "マイナーペンタトニック" },
+    "1 ...♭9 ...9 ♭3 ...3 4 ...♭5 5 ...♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "MP",
+    { en: "Major Pentatonic", ja: "メジャーペンタトニック" },
+    "1 ...♭9 9 ...♯9 3 ...11 ...♯11 5 ...♭13 13 ...♭7 ...Δ7",
+  ],
+  [
+    "hp5b",
+    {
+      en: "Phrygian Dominant (Harmonic Minor Perfect 5th Below, HP5↓)",
+      ja: "フリジアンドミナント (ハーモニックマイナーパーフェクト5thビロウ, HP5↓)",
+    },
+    "1 ♭9 ...9 ...♯9 3 11 ...♯11 5 ♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "lyd7",
+    { en: "Lydian Dominant", ja: "リディアンドミナント (リディアン♭7)" },
+    "1 ...♭9 9 ...♯9 3 ...11 ♯11 5 ...♭13 13 ♭7 ...Δ7",
+  ],
+  [
+    "alt",
+    { en: "Altered", ja: "オルタード" },
+    "1 ♭9 ...9 ♯9 3 ...11 ♯11 ...5 ♭13 ...13 ♯13 ...Δ7",
+  ],
+  [
+    "sloc",
+    { en: "Super Locrian", ja: "スーパーロクリアン" },
+    "1 ♭9 ...9 ♭3 ♭11 ...11 ♭5 ...5 ♭13 ...13 ♭7 ...Δ7",
+  ],
+  [
+    "cdim",
+    {
+      en: "Half-Whole Diminished Scale",
+      ja: "コンディミ (Half-Whole Diminished Scale, Combination of Diminished)",
+    },
+    "1 ♭9 ...9 ♯9 3 ...11 ♯11 5 ...♭13 13 ♭7 ...Δ7",
+  ],
+] as const;
 
-const SCALE_DISPLAY_NAMES: Record<string, Record<Locale, string>> = {
-  M: { en: "Major", ja: "メジャー" },
-  "6": { en: "6", ja: "6" },
-  "69": { en: "69", ja: "69" },
-  "7": { en: "7", ja: "7" },
-  M7: { en: "Δ7", ja: "Δ7" },
-  b9: { en: "♭9", ja: "♭9" },
-  "9": { en: "9", ja: "9" },
-  M9: { en: "Δ9", ja: "Δ9" },
-  "(9)": { en: "(9)", ja: "(9)" },
-  aug: { en: "aug", ja: "aug" },
-  aug7: { en: "aug7 (7#5)", ja: "aug7 (7#5)" },
-  augM7: { en: "augΔ7 (Δ7#5)", ja: "augΔ7 (Δ7#5)" },
-  m: { en: "m", ja: "m" },
-  mb5: { en: "9 (m♭5, Diminished Triad)", ja: "9 (m♭5, ディミニッシュト・トライアド)" },
-  m6: { en: "m6", ja: "m6" },
-  m7: { en: "m7", ja: "m7" },
-  mM7: { en: "mΔ7", ja: "mΔ7" },
-  m9: { en: "m9", ja: "m9" },
-  mM9: { en: "mΔ9", ja: "mΔ9" },
-  "m(9)": { en: "m(9)", ja: "m(9)" },
-  hdim: {
-    en: "ø7 (m7♭5, Half-Diminished Seventh)",
-    ja: "ø7 (m7♭5, ハーフディミニッシュ)",
-  },
-  dim: { en: "o7 (Diminished)", ja: "o7 (ディミニッシュ)" },
-  mP: { en: "Minor Pentatonic", ja: "マイナーペンタトニック" },
-  MP: { en: "Major Pentatonic", ja: "メジャーペンタトニック" },
-  hp5b: {
-    en: "Phrygian Dominant (Harmonic Minor Perfect 5th Below, HP5↓)",
-    ja: "フリジアンドミナント (ハーモニックマイナーパーフェクト5thビロウ, HP5↓)",
-  },
-  lyd7: { en: "Lydian Dominant", ja: "リディアンドミナント (リディアン♭7)" },
-  alt: { en: "Altered", ja: "オルタード" },
-  sloc: { en: "Super Locrian", ja: "スーパーロクリアン" },
-  cdim: {
-    en: "Half-Whole Diminished Scale",
-    ja: "コンディミ (Half-Whole Diminished Scale, Combination of Diminished)",
-  },
-};
-
-const SCALE_NAMES = [
-  "M",
-  "6",
-  "69",
-  "7",
-  "M7",
-  "b9",
-  "9",
-  "M9",
-  "(9)",
-  "aug",
-  "aug7",
-  "augM7",
-  "m",
-  "mb5",
-  "m6",
-  "m7",
-  "mM7",
-  "m9",
-  "mM9",
-  "m(9)",
-  "hdim",
-  "dim",
-  "mP",
-  "MP",
-  "hp5b",
-  "lyd7",
-  "alt",
-  "sloc",
-  "cdim",
-];
+const SCALE_NAMES = SCALE_DEFINITIONS.map(([id]) => id);
+const SCALE_PRESETS: Record<string, string[]> = Object.fromEntries(
+  SCALE_DEFINITIONS.map(([id, , notes]) => [id, notes.split(" ")]),
+);
+const SCALE_DISPLAY_NAMES: Record<
+  string,
+  Record<Locale, string>
+> = Object.fromEntries(
+  SCALE_DEFINITIONS.map(([id, displayName]) => [id, displayName]),
+);
 const KEY_NAMES = Object.keys(ENHARMONICS);
 const CANVAS = {
   fretLabelFontSize: 14,
@@ -306,7 +371,10 @@ function parseTuning(tuning: string): ParsedTuning {
     .filter(Boolean);
 
   if (notes.length === 0) {
-    return { noteIndices: parseTuning(DEFAULT_TUNING).noteIndices, valid: false };
+    return {
+      noteIndices: parseTuning(DEFAULT_TUNING).noteIndices,
+      valid: false,
+    };
   }
 
   const noteIndices = notes.map((note) => {
@@ -318,7 +386,10 @@ function parseTuning(tuning: string): ParsedTuning {
   });
 
   if (noteIndices.some((noteIndex) => noteIndex === null)) {
-    return { noteIndices: parseTuning(DEFAULT_TUNING).noteIndices, valid: false };
+    return {
+      noteIndices: parseTuning(DEFAULT_TUNING).noteIndices,
+      valid: false,
+    };
   }
 
   return { noteIndices: noteIndices as number[], valid: true };
@@ -382,7 +453,10 @@ function tokenListsEqual(a: string[], b: string[]): boolean {
 }
 
 function matchingScaleName(notes: string[]): string | null {
-  return SCALE_NAMES.find((name) => tokenListsEqual(notes, scaleTokens(name))) ?? null;
+  return (
+    SCALE_NAMES.find((name) => tokenListsEqual(notes, scaleTokens(name))) ??
+    null
+  );
 }
 
 function scaleFromNotes(notes: string[]): string {
@@ -404,31 +478,23 @@ function readStringArray(value: unknown): string[] | null {
 function parseSettingsText(text: string): AppSettings | null {
   try {
     const value: unknown = JSON.parse(text);
-    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      return null;
 
     const settings = value as Partial<Record<keyof AppSettings, unknown>>;
     const tuning = readStringArray(settings.tuning);
     const notes = readStringArray(settings.notes);
 
-    if (
-      typeof settings.key !== "string" ||
-      typeof settings.scale !== "string" ||
-      !tuning ||
-      !notes
-    ) {
+    if (typeof settings.key !== "string" || !tuning || !notes) {
       return null;
     }
 
-    if (
-      !ENHARMONICS[settings.key] ||
-      (settings.scale !== CUSTOM_SCALE && !SCALE_PRESETS[settings.scale])
-    ) {
+    if (!ENHARMONICS[settings.key]) {
       return null;
     }
 
     return {
       key: settings.key,
-      scale: settings.scale,
       tuning,
       notes,
     };
@@ -469,7 +535,9 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   const fretXs = board.normalizedFretPositions.map(
     (x) => CANVAS.nutW + CANVAS.boardW * x,
   );
-  const stringYs = board.noteIndices.map((_, i) => labelH + CANVAS.stringGap * i);
+  const stringYs = board.noteIndices.map(
+    (_, i) => labelH + CANVAS.stringGap * i,
+  );
   const yMid = (stringYs[0] + stringYs[stringYs.length - 1]) / 2;
   const tokenValid = activeTokens.length === 12;
   const stringCount = stringYs.length;
@@ -490,7 +558,6 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
     scale === CUSTOM_SCALE ? t.customScale : scaleDisplayName(scale, locale);
   const currentSettingEditorText = settingsText({
     key,
-    scale,
     tuning: linesFromText(tuning),
     notes: linesFromText(noteText),
   });
@@ -688,7 +755,9 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                 <textarea
                   aria-label={t.settingEditor}
                   className="min-h-72 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
-                  value={settingValid ? currentSettingEditorText : settingEditorText}
+                  value={
+                    settingValid ? currentSettingEditorText : settingEditorText
+                  }
                   spellCheck={false}
                   onChange={(event) => applySettingEditor(event.target.value)}
                 />
@@ -728,7 +797,11 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                     y1={stringYs[0]}
                     x2={x}
                     y2={stringYs[stringYs.length - 1]}
-                    stroke={fretIndex === 12 || fretIndex === 24 ? "#5f6f67" : "#b7ad9d"}
+                    stroke={
+                      fretIndex === 12 || fretIndex === 24
+                        ? "#5f6f67"
+                        : "#b7ad9d"
+                    }
                     strokeWidth={fretIndex === 12 || fretIndex === 24 ? 3 : 1}
                   />
                 ))}

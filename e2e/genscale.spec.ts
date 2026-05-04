@@ -77,8 +77,8 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   let settings = JSON.parse(await settingEditor.inputValue());
   expect(settings).toMatchObject({
     key: "A",
-    scale: "m7",
   });
+  expect(settings).not.toHaveProperty("scale");
   expect(settings.tuning).toEqual(["E4", "B3", "G3", "D3", "A2", "E2"]);
 
   await page.getByRole("combobox", { name: "Key" }).selectOption("C");
@@ -87,14 +87,13 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   settings = JSON.parse(await settingEditor.inputValue());
   expect(settings).toMatchObject({
     key: "C",
-    scale: "alt",
   });
+  expect(settings).not.toHaveProperty("scale");
 
   await settingEditor.fill(
     JSON.stringify(
       {
         key: "D",
-        scale: "M7",
         tuning: ["G3", "D3", "A2", "E2"],
         notes: [
           "1",
