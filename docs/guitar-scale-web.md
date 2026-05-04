@@ -254,4 +254,21 @@ L - L / 2^(n/12)
 - [lib/genscale/svg.ts](/home/wsh/d/s/guitar_board/lib/genscale/svg.ts): SVG文字列化
 - [lib/genscale/types.ts](/home/wsh/d/s/guitar_board/lib/genscale/types.ts): 共有型
 
-E2Eテストは [e2e/genscale.spec.ts](/home/wsh/d/s/guitar_board/e2e/genscale.spec.ts) にあります。
+## テスト
+
+純粋なロジックは Vitest のユニットテストで確認します。対象は [lib/genscale](/home/wsh/d/s/guitar_board/lib/genscale) 配下です。
+
+- [lib/genscale/notes.test.ts](/home/wsh/d/s/guitar_board/lib/genscale/notes.test.ts): Notes のドット表記、ラベル解析、丸のグレースケール色
+- [lib/genscale/scales.test.ts](/home/wsh/d/s/guitar_board/lib/genscale/scales.test.ts): スケール順序、表示名、プリセット照合、Custom判定
+- [lib/genscale/settings.test.ts](/home/wsh/d/s/guitar_board/lib/genscale/settings.test.ts): Settings editor のJSON、URL用settings文字列、入力検証
+
+E2Eテストは Playwright で行います。画面操作、SVG表示、URL settings の復元、レスポンシブ表示などは [e2e/genscale.spec.ts](/home/wsh/d/s/guitar_board/e2e/genscale.spec.ts) で確認します。
+
+主な検証コマンド:
+
+```bash
+pnpm test
+pnpm lint
+pnpm build
+pnpm exec playwright test
+```
