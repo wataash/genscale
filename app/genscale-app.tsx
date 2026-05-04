@@ -250,33 +250,6 @@ const SCALE_DISPLAY_NAMES: Record<string, Record<Locale, string>> = {
   },
 };
 
-const SCALE_ALIASES: Record<string, string> = {
-  hp5: "hp5b",
-  HP5: "hp5b",
-  "hp5↓": "hp5b",
-  "HP5↓": "hp5b",
-  "maj 7": "M7",
-  "Maj 7": "M7",
-  maj7: "M7",
-  Maj7: "M7",
-  "major 7": "M7",
-  "Major 7": "M7",
-  "major pentatonic": "MP",
-  "Major pentatonic": "MP",
-  "Major Pentatonic": "MP",
-  major7: "M7",
-  Major7: "M7",
-  "min 7": "m7",
-  min7: "m7",
-  "minor 7": "m7",
-  "Minor 7": "m7",
-  "minor pentatonic": "mP",
-  "Minor pentatonic": "mP",
-  "Minor Pentatonic": "mP",
-  minor7: "m7",
-  Minor7: "m7",
-};
-
 const SCALE_NAMES = Object.keys(SCALE_PRESETS);
 const KEY_NAMES = Object.keys(ENHARMONICS);
 const CANVAS = {
@@ -356,11 +329,11 @@ function noteColors(tone: NoteTone): {
 }
 
 function scaleTokens(scale: string): string[] {
-  return SCALE_PRESETS[SCALE_ALIASES[scale] ?? scale] ?? SCALE_PRESETS.m7;
+  return SCALE_PRESETS[scale] ?? SCALE_PRESETS.m7;
 }
 
 function scaleDisplayName(scale: string, locale: Locale): string {
-  return SCALE_DISPLAY_NAMES[SCALE_ALIASES[scale] ?? scale]?.[locale] ?? scale;
+  return SCALE_DISPLAY_NAMES[scale]?.[locale] ?? scale;
 }
 
 function noteTokensText(scale: string): string {
@@ -416,18 +389,16 @@ function parseSettingsText(text: string): AppSettings | null {
       return null;
     }
 
-    const settingScale = SCALE_ALIASES[settings.scale] ?? settings.scale;
-
     if (
       !ENHARMONICS[settings.key] ||
-      (settingScale !== CUSTOM_SCALE && !SCALE_PRESETS[settingScale])
+      (settings.scale !== CUSTOM_SCALE && !SCALE_PRESETS[settings.scale])
     ) {
       return null;
     }
 
     return {
       key: settings.key,
-      scale: settingScale,
+      scale: settings.scale,
       tuning,
       notes,
     };
