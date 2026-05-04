@@ -676,14 +676,16 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                           cx={cx}
                           cy={cy}
                           r={CANVAS.noteRadius}
-                          fill={note.inScale ? "#2d4f47" : "#ece7dc"}
+                          fill={note.inScale ? "#343434" : "#f7f7f7"}
+                          stroke="#777777"
+                          strokeWidth="1.25"
                         />
                         {note.text ? (
                           <text
                             x={cx}
                             y={cy + 4}
                             textAnchor="middle"
-                            fill={note.inScale ? "#ffffff" : "#736b60"}
+                            fill={note.inScale ? "#f8f8f8" : "#3a3a3a"}
                             fontSize="16"
                             fontWeight="700"
                           >
