@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2026 Wataru Ashihara <wataash0607@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+
 import { expect, test } from "@playwright/test";
 
 test("renders the guitar scale board", async ({ page }) => {
