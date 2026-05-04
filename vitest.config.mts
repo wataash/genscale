@@ -12,6 +12,10 @@ export default defineConfig({
       provider: 'v8',
     },
     environment: 'jsdom',
-    include: ['./app/**/*.test.{ts,tsx}', './components/**/*.test.{ts,tsx}'],
+    include: [
+      './app/**/*.test.{ts,tsx}',
+      './components/**/*.test.{ts,tsx}',
+      './lib/**/*.test.{ts,tsx}',
+    ],
   },
 })
