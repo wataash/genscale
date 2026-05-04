@@ -33,6 +33,19 @@ describe("noteColors", () => {
       text: "#333333",
     });
   });
+
+  test("maps custom tone grayscale levels to SVG colors", () => {
+    expect(noteColors(1, [0, 50, 75, 100])).toEqual({
+      fill: "#808080",
+      stroke: "#242424",
+      text: "#f8f8f8",
+    });
+    expect(noteColors(2, [0, 50, 75, 100])).toEqual({
+      fill: "#bfbfbf",
+      stroke: "#636363",
+      text: "#333333",
+    });
+  });
 });
 
 describe("linesFromText", () => {

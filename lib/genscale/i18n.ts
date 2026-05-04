@@ -14,6 +14,8 @@ export const TRANSLATIONS: Record<
     tuningPreset: string;
     customTuning: string;
     notes: string;
+    noteGrayLevels: string;
+    noteGrayValue: (label: string) => string;
     settingEditor: string;
     copySettingsUrl: string;
     copySettingsUrlCopying: string;
@@ -35,6 +37,8 @@ export const TRANSLATIONS: Record<
     tuningPreset: "Preset",
     customTuning: "Custom",
     notes: "Notes",
+    noteGrayLevels: "Note grayscale",
+    noteGrayValue: (label) => `${label} grayscale`,
     settingEditor: "Settings editor",
     copySettingsUrl: "Copy URL with this settings (experimental)",
     copySettingsUrlCopying: "Copying...",
@@ -55,6 +59,8 @@ export const TRANSLATIONS: Record<
     tuningPreset: "プリセット",
     customTuning: "カスタム",
     notes: "Notes",
+    noteGrayLevels: "NOTE色 (グレースケール)",
+    noteGrayValue: (label) => `${label} のグレースケール`,
     settingEditor: "設定エディタ",
     copySettingsUrl: "この設定のURLをコピー (experimental)",
     copySettingsUrlCopying: "コピー中...",

@@ -11,6 +11,7 @@ import { TRANSLATIONS } from "@/lib/genscale/i18n";
 import {
   ENHARMONICS,
   KEY_NAMES,
+  DEFAULT_NOTE_GRAY_LEVELS,
   linesFromText,
   noteColors,
   NOTE_INDICES,
@@ -35,7 +36,7 @@ import {
   parseTuning,
   TUNING_PRESETS,
 } from "@/lib/genscale/tuning";
-import type { Locale } from "@/lib/genscale/types";
+import type { Locale, NoteTone } from "@/lib/genscale/types";
 
 type GenscaleAppProps = {
   initialSettingsText?: string;
@@ -43,6 +44,13 @@ type GenscaleAppProps = {
 };
 
 type CopySettingsStatus = "idle" | "copying" | "copied" | "failed";
+
+const NOTE_GRAY_CONTROLS: { label: string; tone: NoteTone }[] = [
+  { label: "NOTE", tone: 0 },
+  { label: ".NOTE", tone: 1 },
+  { label: "..NOTE", tone: 2 },
+  { label: "...NOTE", tone: 3 },
+];
 
 export default function GenscaleApp({
   initialSettingsText,
@@ -70,6 +78,9 @@ export default function GenscaleApp({
   );
   const [copySettingsStatus, setCopySettingsStatus] =
     useState<CopySettingsStatus>("idle");
+  const [noteGrayLevels, setNoteGrayLevels] = useState<number[]>([
+    ...DEFAULT_NOTE_GRAY_LEVELS,
+  ]);
   const parsedTuning = useMemo(() => parseTuning(tuning), [tuning]);
   const board = useMemo(
     () => buildFretboard(parsedTuning.noteIndices),
@@ -171,6 +182,12 @@ export default function GenscaleApp({
     setTuning(settings.tuning.join("\n"));
     setNoteText(settings.notes.join("\n"));
     setSettingValid(true);
+  }
+
+  function updateNoteGrayLevel(tone: NoteTone, value: string) {
+    setNoteGrayLevels((current) =>
+      current.map((level, index) => (index === tone ? Number(value) : level)),
+    );
   }
 
   return (
@@ -303,6 +320,49 @@ export default function GenscaleApp({
                   {t.tokenError}
                 </p>
               ) : null}
+
+              <div className="grid gap-3 text-sm font-semibold">
+                <span>{t.noteGrayLevels}</span>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {NOTE_GRAY_CONTROLS.map(({ label, tone }) => {
+                    const colors = noteColors(tone, noteGrayLevels);
+
+                    return (
+                      <label
+                        key={label}
+                        className="grid gap-2 rounded-md border border-[#d8d0c2] p-3"
+                      >
+                        <span className="flex items-center justify-between gap-3">
+                          <span>{label}</span>
+                          <span className="flex items-center gap-2 font-mono text-xs text-[#5f584f]">
+                            <span
+                              aria-hidden="true"
+                              className="h-5 w-5 rounded-full border"
+                              style={{
+                                backgroundColor: colors.fill,
+                                borderColor: colors.stroke,
+                              }}
+                            />
+                            {noteGrayLevels[tone]}%
+                          </span>
+                        </span>
+                        <input
+                          aria-label={t.noteGrayValue(label)}
+                          className="w-full accent-[#2d4f47]"
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={noteGrayLevels[tone]}
+                          onChange={(event) =>
+                            updateNoteGrayLevel(tone, event.target.value)
+                          }
+                        />
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div className="grid gap-2 text-sm font-semibold">
                 <span>{t.tuning}</span>
@@ -495,7 +555,7 @@ export default function GenscaleApp({
                   stringNoteIndices.map((fretNoteIndex, noteIndex) => {
                     const offset = (fretNoteIndex - rootKey + 12) % 12;
                     const note = labels[offset];
-                    const colors = noteColors(note.tone);
+                    const colors = noteColors(note.tone, noteGrayLevels);
                     const cx =
                       noteIndex === 0
                         ? fretXs[0] - CANVAS.nutW / 2

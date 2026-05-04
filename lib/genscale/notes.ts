@@ -44,6 +44,8 @@ export const ENHARMONICS: Record<string, NoteName> = {
 
 export const KEY_NAMES = Object.keys(ENHARMONICS);
 
+export const DEFAULT_NOTE_GRAY_LEVELS = [20, 33, 89, 97] as const;
+
 export function parseLabels(tokens: string[]): NoteLabel[] {
   return tokens.map((token) => {
     const prefixLength = token.match(/^\.*/)?.[0].length ?? 0;
@@ -56,17 +58,50 @@ export function parseLabels(tokens: string[]): NoteLabel[] {
   });
 }
 
-export function noteColors(tone: NoteTone): {
+export function noteColors(
+  tone: NoteTone,
+  grayLevels: readonly number[] = DEFAULT_NOTE_GRAY_LEVELS,
+): {
   fill: string;
   stroke: string;
   text: string;
 } {
-  return [
-    { fill: "#343434", stroke: "#575757", text: "#f8f8f8" },
-    { fill: "#555555", stroke: "#6f6f6f", text: "#f8f8f8" },
-    { fill: "#e4e4e4", stroke: "#9a9a9a", text: "#333333" },
-    { fill: "#f8f8f8", stroke: "#9a9a9a", text: "#333333" },
-  ][tone];
+  if (usesDefaultNoteGrayLevels(grayLevels)) {
+    return [
+      { fill: "#343434", stroke: "#575757", text: "#f8f8f8" },
+      { fill: "#555555", stroke: "#6f6f6f", text: "#f8f8f8" },
+      { fill: "#e4e4e4", stroke: "#9a9a9a", text: "#333333" },
+      { fill: "#f8f8f8", stroke: "#9a9a9a", text: "#333333" },
+    ][tone];
+  }
+
+  const gray = clampGray(grayLevels[tone] ?? DEFAULT_NOTE_GRAY_LEVELS[tone]);
+  const strokeGray = gray < 50 ? Math.min(gray + 14, 100) : Math.max(gray - 36, 0);
+  const fill = grayHex(gray);
+
+  return {
+    fill,
+    stroke: grayHex(strokeGray),
+    text: gray < 62 ? "#f8f8f8" : "#333333",
+  };
+}
+
+function clampGray(value: number): number {
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
+function usesDefaultNoteGrayLevels(grayLevels: readonly number[]): boolean {
+  return DEFAULT_NOTE_GRAY_LEVELS.every(
+    (level, index) => grayLevels[index] === level,
+  );
+}
+
+function grayHex(value: number): string {
+  const channel = Math.round((clampGray(value) / 100) * 255)
+    .toString(16)
+    .padStart(2, "0");
+
+  return `#${channel}${channel}${channel}`;
 }
 
 export function linesFromText(text: string): string[] {

@@ -250,6 +250,17 @@ test("supports editable dot tokens for out-of-scale and hidden labels", async ({
   await expect(page.locator("svg text").filter({ hasText: "♭9" })).toHaveCount(0);
 });
 
+test("adjusts note grayscale levels", async ({ page }) => {
+  await page.goto("/en");
+
+  await expect(page.locator('svg circle[fill="#343434"]')).not.toHaveCount(0);
+  await page
+    .getByRole("slider", { name: "NOTE grayscale", exact: true })
+    .fill("60");
+
+  await expect(page.locator('svg circle[fill="#999999"]')).not.toHaveCount(0);
+});
+
 test("renders Japanese UI at /ja", async ({ page }) => {
   await page.goto("/ja");
 
@@ -266,6 +277,9 @@ test("renders Japanese UI at /ja", async ({ page }) => {
       .locator("option", { hasText: "オルタード" }),
   ).toHaveAttribute("value", "alt");
   await expect(page.getByLabel("チューニング")).toBeVisible();
+  await expect(
+    page.getByRole("slider", { name: "NOTE のグレースケール", exact: true }),
+  ).toBeVisible();
   await expect(page.getByLabel("設定エディタ")).toBeVisible();
   await expect(page.getByLabel("A m7 ギター指板スケール")).toBeVisible();
 });
