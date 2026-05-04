@@ -10,7 +10,7 @@ test("renders the guitar scale board", async ({ page }) => {
     page.getByRole("heading", { name: "genscale" }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("A Minor 7 guitar scale fretboard"),
+    page.getByLabel("A m7 guitar scale fretboard"),
   ).toBeVisible();
 });
 
@@ -21,7 +21,7 @@ test("updates the fretboard label when key and scale change", async ({ page }) =
   await page.getByRole("combobox", { name: "Scale" }).selectOption("M7");
 
   await expect(
-    page.getByLabel("C Major 7 guitar scale fretboard"),
+    page.getByLabel("C Δ7 guitar scale fretboard"),
   ).toBeVisible();
 });
 
@@ -135,7 +135,7 @@ test("keeps the fretboard above the controls at small and large widths", async (
     await page.goto("/en");
 
     const fretboardBox = await page
-      .getByLabel("A Minor 7 guitar scale fretboard")
+      .getByLabel("A m7 guitar scale fretboard")
       .boundingBox();
     const keyBox = await page
       .getByRole("combobox", { name: "Key" })
@@ -154,7 +154,7 @@ test("renders a smaller fretboard on mobile", async ({ page }) => {
   await page.goto("/en");
 
   const fretboardBox = await page
-    .getByLabel("A Minor 7 guitar scale fretboard")
+    .getByLabel("A m7 guitar scale fretboard")
     .boundingBox();
 
   expect(fretboardBox).not.toBeNull();
@@ -221,5 +221,5 @@ test("renders Japanese UI at /ja", async ({ page }) => {
   ).toHaveAttribute("value", "alt");
   await expect(page.getByLabel("チューニング")).toBeVisible();
   await expect(page.getByLabel("設定エディタ")).toBeVisible();
-  await expect(page.getByLabel("A マイナー7 ギター指板スケール")).toBeVisible();
+  await expect(page.getByLabel("A m7 ギター指板スケール")).toBeVisible();
 });
