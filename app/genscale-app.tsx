@@ -42,7 +42,6 @@ type AppSettings = {
   key: string;
   scale: string;
   tuning: string[];
-  customMode: boolean;
   notes: string[];
 };
 
@@ -53,13 +52,11 @@ const TRANSLATIONS: Record<
     key: string;
     scale: string;
     tuning: string;
-    editLabels: string;
     notes: string;
     settingEditor: string;
     tokenError: string;
     tuningError: string;
     settingError: string;
-    custom: string;
     fretboardLabel: (key: string, scale: string) => string;
     localeLabel: string;
   }
@@ -69,13 +66,11 @@ const TRANSLATIONS: Record<
     key: "Key",
     scale: "Scale",
     tuning: "Tuning",
-    editLabels: "Edit 12 note labels",
     notes: "Notes",
-    settingEditor: "Setting editor",
+    settingEditor: "Settings editor",
     tokenError: "Notes must contain exactly 12 line-separated tokens.",
     tuningError: "Tuning must contain one note with octave per line.",
-    settingError: "Setting editor must contain valid genscale JSON.",
-    custom: "custom",
+    settingError: "Settings editor must contain valid genscale JSON.",
     fretboardLabel: (key, scale) => `${key} ${scale} guitar scale fretboard`,
     localeLabel: "Language",
   },
@@ -84,13 +79,11 @@ const TRANSLATIONS: Record<
     key: "キー",
     scale: "スケール",
     tuning: "チューニング",
-    editLabels: "12音ラベルを編集",
     notes: "Notes",
     settingEditor: "設定エディタ",
     tokenError: "Notes は行区切りで12個にしてください。",
     tuningError: "チューニングは1行に1つ、音名とオクターブで指定してください。",
     settingError: "設定エディタには有効な genscale JSON を入力してください。",
-    custom: "カスタム",
     fretboardLabel: (key, scale) => `${key} ${scale} ギター指板スケール`,
     localeLabel: "言語",
   },
@@ -329,7 +322,6 @@ function parseSettingsText(text: string): AppSettings | null {
     if (
       typeof settings.key !== "string" ||
       typeof settings.scale !== "string" ||
-      typeof settings.customMode !== "boolean" ||
       !tuning ||
       !notes
     ) {
@@ -344,7 +336,6 @@ function parseSettingsText(text: string): AppSettings | null {
       key: settings.key,
       scale: SCALE_ALIASES[settings.scale] ?? settings.scale,
       tuning,
-      customMode: settings.customMode,
       notes,
     };
   } catch {
@@ -362,17 +353,8 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   const [key, setKey] = useState("A");
   const [scale, setScale] = useState("m7");
   const [tuning, setTuning] = useState(DEFAULT_TUNING);
-  const [customMode, setCustomMode] = useState(false);
-  const [customNotes, setCustomNotes] = useState(noteTokensText("m7"));
-  const [settingEditorText, setSettingEditorText] = useState(() =>
-    settingsText({
-      key: "A",
-      scale: "m7",
-      tuning: linesFromText(DEFAULT_TUNING),
-      customMode: false,
-      notes: scaleTokens("m7"),
-    }),
-  );
+  const [noteText, setNoteText] = useState(noteTokensText("m7"));
+  const [settingEditorText, setSettingEditorText] = useState("");
   const [settingValid, setSettingValid] = useState(true);
   const parsedTuning = useMemo(() => parseTuning(tuning), [tuning]);
   const board = useMemo(
@@ -380,12 +362,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
     [parsedTuning.noteIndices],
   );
   const rootKey = NOTE_INDICES[ENHARMONICS[key]];
-  const activeTokens = customMode
-    ? customNotes
-        .split(/\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-    : scaleTokens(scale);
+  const activeTokens = linesFromText(noteText);
   const labels = parseLabels(
     activeTokens.length === 12 ? activeTokens : scaleTokens(scale),
   );
@@ -402,6 +379,12 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
   const yMid = (stringYs[0] + stringYs[stringYs.length - 1]) / 2;
   const ySpread = stringYs[1] - stringYs[0] || CANVAS.stringGap;
   const tokenValid = activeTokens.length === 12;
+  const currentSettingEditorText = settingsText({
+    key,
+    scale,
+    tuning: linesFromText(tuning),
+    notes: linesFromText(noteText),
+  });
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -413,23 +396,9 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
     const href = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = href;
-    link.download = `${key}-${customMode ? "custom" : scale}.svg`;
+    link.download = `${key}-${scale}.svg`;
     link.click();
     URL.revokeObjectURL(href);
-  }
-
-  function syncSettingEditor(settings: Partial<AppSettings>) {
-    setSettingEditorText(
-      settingsText({
-        key,
-        scale,
-        tuning: linesFromText(tuning),
-        customMode,
-        notes: linesFromText(customNotes),
-        ...settings,
-      }),
-    );
-    setSettingValid(true);
   }
 
   function applySettingEditor(text: string) {
@@ -444,8 +413,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
     setKey(settings.key);
     setScale(settings.scale);
     setTuning(settings.tuning.join("\n"));
-    setCustomMode(settings.customMode);
-    setCustomNotes(settings.notes.join("\n"));
+    setNoteText(settings.notes.join("\n"));
     setSettingValid(true);
   }
 
@@ -499,49 +467,46 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
         <div className="grid gap-4">
           <aside className="order-2 rounded-lg border border-[#d8d0c2] bg-white p-4 shadow-sm">
             <div className="grid gap-4">
-              <label className="grid gap-2 text-sm font-semibold">
-                {t.key}
-                <select
-                  aria-label={t.key}
-                  className="h-10 rounded-md border border-[#c9bda9] bg-white px-3 text-base"
-                  value={key}
-                  onChange={(event) => {
-                    setKey(event.target.value);
-                    syncSettingEditor({ key: event.target.value });
-                  }}
-                >
-                  {KEY_NAMES.map((name) => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="grid gap-2 text-sm font-semibold">
+                <span>
+                  {t.key} / {t.scale}
+                </span>
+                <div className="grid gap-3 sm:grid-cols-[minmax(8rem,12rem)_minmax(14rem,1fr)]">
+                  <select
+                    aria-label={t.key}
+                    className="h-10 rounded-md border border-[#c9bda9] bg-white px-3 text-base"
+                    value={key}
+                    onChange={(event) => {
+                      setKey(event.target.value);
+                      setSettingValid(true);
+                    }}
+                  >
+                    {KEY_NAMES.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
 
-              <label className="grid gap-2 text-sm font-semibold">
-                {t.scale}
-                <select
-                  aria-label={t.scale}
-                  className="h-10 rounded-md border border-[#c9bda9] bg-white px-3 text-base disabled:bg-[#eee8dc]"
-                  value={scale}
-                  disabled={customMode}
-                  onChange={(event) => {
-                    const nextNotes = scaleTokens(event.target.value);
-                    setScale(event.target.value);
-                    setCustomNotes(nextNotes.join("\n"));
-                    syncSettingEditor({
-                      scale: event.target.value,
-                      notes: nextNotes,
-                    });
-                  }}
-                >
-                  {SCALE_NAMES.map((name) => (
-                    <option key={name} value={name}>
-                      {scaleDisplayName(name)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <select
+                    aria-label={t.scale}
+                    className="h-10 rounded-md border border-[#c9bda9] bg-white px-3 text-base"
+                    value={scale}
+                    onChange={(event) => {
+                      const nextNotes = scaleTokens(event.target.value);
+                      setScale(event.target.value);
+                      setNoteText(nextNotes.join("\n"));
+                      setSettingValid(true);
+                    }}
+                  >
+                    {SCALE_NAMES.map((name) => (
+                      <option key={name} value={name}>
+                        {scaleDisplayName(name)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
               <label className="grid gap-2 text-sm font-semibold">
                 {t.tuning}
@@ -552,7 +517,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                   spellCheck={false}
                   onChange={(event) => {
                     setTuning(event.target.value);
-                    syncSettingEditor({ tuning: linesFromText(event.target.value) });
+                    setSettingValid(true);
                   }}
                 />
               </label>
@@ -563,34 +528,20 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                 </p>
               ) : null}
 
-              <label className="flex items-center gap-3 text-sm font-semibold">
-                <input
-                  className="size-4 accent-[#2d4f47]"
-                  type="checkbox"
-                  checked={customMode}
-                  onChange={(event) => {
-                    setCustomMode(event.target.checked);
-                    syncSettingEditor({ customMode: event.target.checked });
-                  }}
-                />
-                {t.editLabels}
-              </label>
-
               <label className="grid gap-2 text-sm font-semibold">
                 {t.notes}
                 <textarea
-                  className="min-h-72 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6 disabled:bg-[#eee8dc]"
-                  value={customNotes}
-                  disabled={!customMode}
+                  className="min-h-72 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
+                  value={noteText}
                   spellCheck={false}
                   onChange={(event) => {
-                    setCustomNotes(event.target.value);
-                    syncSettingEditor({ notes: linesFromText(event.target.value) });
+                    setNoteText(event.target.value);
+                    setSettingValid(true);
                   }}
                 />
               </label>
 
-              {!tokenValid && customMode ? (
+              {!tokenValid ? (
                 <p className="rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
                   {t.tokenError}
                 </p>
@@ -601,7 +552,7 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
                 <textarea
                   aria-label={t.settingEditor}
                   className="min-h-72 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
-                  value={settingEditorText}
+                  value={settingValid ? currentSettingEditorText : settingEditorText}
                   spellCheck={false}
                   onChange={(event) => applySettingEditor(event.target.value)}
                 />
@@ -619,11 +570,8 @@ export default function GenscaleApp({ locale }: GenscaleAppProps) {
             <div className="overflow-x-auto p-4">
               <svg
                 id="fretboard-svg"
-                aria-label={t.fretboardLabel(
-                  key,
-                  customMode ? t.custom : scaleDisplayName(scale),
-                )}
-                className="block min-w-[980px]"
+                aria-label={t.fretboardLabel(key, scaleDisplayName(scale))}
+                className="block w-[1008px] max-w-none sm:w-[1440px]"
                 width={canvasW}
                 height={canvasH}
                 viewBox={`0 0 ${canvasW} ${canvasH}`}

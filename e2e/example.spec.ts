@@ -54,15 +54,14 @@ test("supports editable tuning and string count", async ({ page }) => {
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
 });
 
-test("syncs the setting editor with the controls", async ({ page }) => {
+test("syncs the settings editor with the controls", async ({ page }) => {
   await page.goto("/en");
 
-  const settingEditor = page.getByLabel("Setting editor");
+  const settingEditor = page.getByLabel("Settings editor");
   let settings = JSON.parse(await settingEditor.inputValue());
   expect(settings).toMatchObject({
     key: "A",
     scale: "m7",
-    customMode: false,
   });
   expect(settings.tuning).toEqual(["E4", "B3", "G3", "D3", "A2", "E2"]);
 
@@ -81,7 +80,6 @@ test("syncs the setting editor with the controls", async ({ page }) => {
         key: "D",
         scale: "M7",
         tuning: ["G3", "D3", "A2", "E2"],
-        customMode: true,
         notes: ["1", "_", "_", "♭3", "_", "_", "_", "5", "_", "_", "♭7", "_"],
       },
       null,
@@ -92,12 +90,11 @@ test("syncs the setting editor with the controls", async ({ page }) => {
   await expect(page.getByRole("combobox", { name: "Key" })).toHaveValue("D");
   await expect(page.getByRole("combobox", { name: "Scale" })).toHaveValue("M7");
   await expect(page.getByLabel("Tuning")).toHaveValue("G3\nD3\nA2\nE2");
-  await expect(page.getByLabel("Edit 12 note labels")).toBeChecked();
   await expect(page.getByLabel("Notes")).toHaveValue(
     "1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_",
   );
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
-  await expect(page.getByLabel("D custom guitar scale fretboard")).toBeVisible();
+  await expect(page.getByLabel("D Major 7 guitar scale fretboard")).toBeVisible();
 });
 
 test("keeps the fretboard above the controls at small and large widths", async ({
@@ -125,6 +122,20 @@ test("keeps the fretboard above the controls at small and large widths", async (
   }
 });
 
+test("renders a smaller fretboard on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en");
+
+  const fretboardBox = await page
+    .getByLabel("A Minor 7 guitar scale fretboard")
+    .boundingBox();
+
+  expect(fretboardBox).not.toBeNull();
+  if (!fretboardBox) throw new Error("Missing fretboard");
+
+  expect(fretboardBox.width).toBeLessThan(1100);
+});
+
 test("shows the 24th fret when the browser is wide enough", async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto("/en");
@@ -141,20 +152,25 @@ test("shows the 24th fret when the browser is wide enough", async ({ page }) => 
   expect(label24Box.x + label24Box.width).toBeLessThanOrEqual(1600);
 });
 
-test("supports underscore tokens for out-of-scale and hidden labels", async ({
+test("supports editable underscore tokens for out-of-scale and hidden labels", async ({
   page,
 }) => {
   await page.goto("/en");
 
-  await page.getByLabel("Edit 12 note labels").check();
   await expect(page.getByLabel("Notes")).toHaveValue(
     "1\n_♭9\n_9\n♭3\n_3\n_11\n_♯11\n5\n_♭13\n_13\n♭7\n_Δ7",
   );
-  await page
-    .getByLabel("Notes")
-    .fill("1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_");
+  const notes = page.getByLabel("Notes");
+  await notes.click();
+  await notes.press("Control+A");
+  await notes.press("Backspace");
+  await expect(notes).toHaveValue("");
+  await notes.fill("1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_");
 
-  await expect(page.getByLabel("A custom guitar scale fretboard")).toBeVisible();
+  await expect(notes).toHaveValue(
+    "1\n_\n_\n♭3\n_\n_\n_\n5\n_\n_\n♭7\n_",
+  );
+  await expect(page.getByLabel("A Minor 7 guitar scale fretboard")).toBeVisible();
   await expect(page.locator("svg text").filter({ hasText: "♭9" })).toHaveCount(0);
 });
 
