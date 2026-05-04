@@ -1,18 +1,23 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from "@playwright/test";
 
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+test("renders the guitar scale board", async ({ page }) => {
+  await page.goto("/");
 
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
+  await expect(
+    page.getByRole("heading", { name: "ギター指板スケール生成" }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("A m7 guitar scale fretboard"),
+  ).toBeVisible();
 });
 
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+test("updates the fretboard label when key and scale change", async ({ page }) => {
+  await page.goto("/");
 
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
+  await page.getByRole("combobox", { name: "Key" }).selectOption("C");
+  await page.getByRole("combobox", { name: "Scale" }).selectOption("M7");
 
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+  await expect(
+    page.getByLabel("C M7 guitar scale fretboard"),
+  ).toBeVisible();
 });
