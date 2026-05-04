@@ -38,4 +38,5 @@ export type AppSettings = {
   key: string;
   tuning: string[];
   notes: string[];
+  noteGrayLevels: number[];
 };

@@ -80,15 +80,25 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   });
   expect(settings).not.toHaveProperty("scale");
   expect(settings.tuning).toEqual(["E4", "B3", "G3", "D3", "A2", "E2"]);
+  expect(settings.noteGrayLevels).toEqual([20, 33, 89, 97]);
 
   await page.getByRole("combobox", { name: "Key" }).selectOption("C");
   await page.getByRole("combobox", { name: "Scale" }).selectOption("alt");
+  const noteSlider = page.getByRole("slider", {
+    name: "NOTE grayscale",
+    exact: true,
+  });
+  await noteSlider.focus();
+  for (let i = 0; i < 10; i += 1) {
+    await page.keyboard.press("ArrowRight");
+  }
 
   settings = JSON.parse(await settingEditor.inputValue());
   expect(settings).toMatchObject({
     key: "C",
   });
   expect(settings).not.toHaveProperty("scale");
+  expect(settings.noteGrayLevels).toEqual([30, 33, 89, 97]);
 
   await settingEditor.fill(
     JSON.stringify(
@@ -109,6 +119,7 @@ test("syncs the settings editor with the controls", async ({ page }) => {
           "♭7",
           "...",
         ],
+        noteGrayLevels: [10, 20, 30, 40],
       },
       null,
       2,
@@ -123,7 +134,11 @@ test("syncs the settings editor with the controls", async ({ page }) => {
   await expect(page.getByLabel("Notes")).toHaveValue(
     "1\n...\n...\n♭3\n...\n...\n...\n5\n...\n...\n♭7\n...",
   );
+  await expect(
+    page.getByRole("slider", { name: "NOTE grayscale", exact: true }),
+  ).toHaveValue("10");
   await expect(page.locator('svg line[stroke="#a59c8f"]')).toHaveCount(4);
+  await expect(page.locator('svg circle[fill="#1a1a1a"]')).not.toHaveCount(0);
   await expect(page.getByLabel("D Custom guitar scale fretboard")).toBeVisible();
 });
 

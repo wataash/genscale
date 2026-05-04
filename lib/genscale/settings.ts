@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 Wataru Ashihara <wataash0607@gmail.com>
 // SPDX-License-Identifier: Apache-2.0
 
-import { ENHARMONICS } from "./notes";
+import { DEFAULT_NOTE_GRAY_LEVELS, ENHARMONICS } from "./notes";
 import type { AppSettings } from "./types";
 
 export function settingsText(settings: AppSettings): string {
@@ -24,6 +24,28 @@ function readStringArray(value: unknown): string[] | null {
   return value;
 }
 
+function readNoteGrayLevels(value: unknown): number[] | null {
+  if (value === undefined) {
+    return [...DEFAULT_NOTE_GRAY_LEVELS];
+  }
+
+  if (
+    !Array.isArray(value) ||
+    value.length !== DEFAULT_NOTE_GRAY_LEVELS.length ||
+    value.some(
+      (item) =>
+        typeof item !== "number" ||
+        !Number.isFinite(item) ||
+        item < 0 ||
+        item > 100,
+    )
+  ) {
+    return null;
+  }
+
+  return value.map((item) => Math.round(item));
+}
+
 export function parseSettingsText(text: string): AppSettings | null {
   try {
     const value: unknown = JSON.parse(text);
@@ -33,8 +55,9 @@ export function parseSettingsText(text: string): AppSettings | null {
     const settings = value as Partial<Record<keyof AppSettings, unknown>>;
     const tuning = readStringArray(settings.tuning);
     const notes = readStringArray(settings.notes);
+    const noteGrayLevels = readNoteGrayLevels(settings.noteGrayLevels);
 
-    if (typeof settings.key !== "string" || !tuning || !notes) {
+    if (typeof settings.key !== "string" || !tuning || !notes || !noteGrayLevels) {
       return null;
     }
 
@@ -46,6 +69,7 @@ export function parseSettingsText(text: string): AppSettings | null {
       key: settings.key,
       tuning,
       notes,
+      noteGrayLevels,
     };
   } catch {
     return null;

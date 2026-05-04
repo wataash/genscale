@@ -79,7 +79,7 @@ export default function GenscaleApp({
   const [copySettingsStatus, setCopySettingsStatus] =
     useState<CopySettingsStatus>("idle");
   const [noteGrayLevels, setNoteGrayLevels] = useState<number[]>([
-    ...DEFAULT_NOTE_GRAY_LEVELS,
+    ...(initialSettings?.noteGrayLevels ?? DEFAULT_NOTE_GRAY_LEVELS),
   ]);
   const parsedTuning = useMemo(() => parseTuning(tuning), [tuning]);
   const board = useMemo(
@@ -125,6 +125,7 @@ export default function GenscaleApp({
     key,
     tuning: linesFromText(tuning),
     notes: linesFromText(noteText),
+    noteGrayLevels,
   };
   const currentSettingEditorText = settingsText(currentSettings);
 
@@ -181,6 +182,7 @@ export default function GenscaleApp({
     setScale(scaleFromNotes(settings.notes));
     setTuning(settings.tuning.join("\n"));
     setNoteText(settings.notes.join("\n"));
+    setNoteGrayLevels(settings.noteGrayLevels);
     setSettingValid(true);
   }
 
@@ -188,6 +190,7 @@ export default function GenscaleApp({
     setNoteGrayLevels((current) =>
       current.map((level, index) => (index === tone ? Number(value) : level)),
     );
+    setSettingValid(true);
   }
 
   return (

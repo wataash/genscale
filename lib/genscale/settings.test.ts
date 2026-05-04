@@ -27,6 +27,7 @@ const settings: AppSettings = {
     "♯13",
     "...Δ7",
   ],
+  noteGrayLevels: [20, 33, 89, 97],
 };
 
 describe("settingsText", () => {
@@ -58,9 +59,22 @@ describe("parseSettingsText", () => {
     expect(parseSettingsText(JSON.stringify(settings))).toEqual(settings);
   });
 
+  test("fills default note grayscale levels for legacy settings JSON", () => {
+    const legacySettings: Omit<AppSettings, "noteGrayLevels"> = {
+      key: settings.key,
+      tuning: settings.tuning,
+      notes: settings.notes,
+    };
+
+    expect(parseSettingsText(JSON.stringify(legacySettings))).toEqual(settings);
+  });
+
   test("rejects invalid JSON, invalid keys, and incomplete settings", () => {
     expect(parseSettingsText("{")).toBeNull();
     expect(parseSettingsText(JSON.stringify({ ...settings, key: "H" }))).toBeNull();
     expect(parseSettingsText(JSON.stringify({ key: "A", notes: [] }))).toBeNull();
+    expect(
+      parseSettingsText(JSON.stringify({ ...settings, noteGrayLevels: [20, 33] })),
+    ).toBeNull();
   });
 });
