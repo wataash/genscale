@@ -250,7 +250,37 @@ const SCALE_DISPLAY_NAMES: Record<string, Record<Locale, string>> = {
   },
 };
 
-const SCALE_NAMES = Object.keys(SCALE_PRESETS);
+const SCALE_NAMES = [
+  "M",
+  "6",
+  "69",
+  "7",
+  "M7",
+  "b9",
+  "9",
+  "M9",
+  "(9)",
+  "aug",
+  "aug7",
+  "augM7",
+  "m",
+  "mb5",
+  "m6",
+  "m7",
+  "mM7",
+  "m9",
+  "mM9",
+  "m(9)",
+  "hdim",
+  "dim",
+  "mP",
+  "MP",
+  "hp5b",
+  "lyd7",
+  "alt",
+  "sloc",
+  "cdim",
+];
 const KEY_NAMES = Object.keys(ENHARMONICS);
 const CANVAS = {
   fretLabelFontSize: 14,

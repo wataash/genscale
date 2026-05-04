@@ -31,6 +31,10 @@ test("shows formal scale names while keeping compact scale identifiers", async (
   await page.goto("/en");
 
   const scaleSelect = page.getByRole("combobox", { name: "Scale" });
+  await expect(scaleSelect.locator("option").nth(0)).toHaveText("Major");
+  await expect(scaleSelect.locator("option").nth(1)).toHaveText("6");
+  await expect(scaleSelect.locator("option").nth(2)).toHaveText("69");
+  await expect(scaleSelect.locator("option").nth(3)).toHaveText("7");
   await expect(scaleSelect.locator("option", { hasText: "Altered" })).toHaveAttribute(
     "value",
     "alt",
