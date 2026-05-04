@@ -21,6 +21,14 @@ export const TRANSLATIONS: Record<
     copySettingsUrlCopying: string;
     copySettingsUrlCopied: string;
     copySettingsUrlFailed: string;
+    modeTabsLabel: string;
+    editMode: string;
+    concatMode: string;
+    concatInput: string;
+    concatHelp: string;
+    concatEmpty: string;
+    concatInvalidLines: (lineNumbers: string) => string;
+    concatBoardTitle: (lineNumber: number, key: string, scale: string) => string;
     tokenError: string;
     tuningError: string;
     settingError: string;
@@ -44,6 +52,17 @@ export const TRANSLATIONS: Record<
     copySettingsUrlCopying: "Copying...",
     copySettingsUrlCopied: "Copied",
     copySettingsUrlFailed: "Copy failed",
+    modeTabsLabel: "Mode",
+    editMode: "edit mode",
+    concatMode: "concat mode",
+    concatInput: "Copied settings URLs",
+    concatHelp:
+      'Paste one URL per line from "Copy URL with this settings (experimental)".',
+    concatEmpty: "No valid copied URLs yet.",
+    concatInvalidLines: (lineNumbers) =>
+      `These lines do not contain valid copied settings URLs: ${lineNumbers}.`,
+    concatBoardTitle: (lineNumber, key, scale) =>
+      `Line ${lineNumber}: ${key} ${scale}`,
     tokenError: "Notes must contain exactly 12 line-separated tokens.",
     tuningError: "Tuning must contain one note with octave per line.",
     settingError: "Settings editor must contain valid genscale JSON.",
@@ -66,6 +85,17 @@ export const TRANSLATIONS: Record<
     copySettingsUrlCopying: "コピー中...",
     copySettingsUrlCopied: "コピーしました",
     copySettingsUrlFailed: "コピー失敗",
+    modeTabsLabel: "モード",
+    editMode: "edit mode",
+    concatMode: "concat mode",
+    concatInput: "コピーした設定URL",
+    concatHelp:
+      "各行に 1 つずつ、「この設定のURLをコピー (experimental)」でコピーしたURLを貼り付けます。",
+    concatEmpty: "有効な設定URLがまだありません。",
+    concatInvalidLines: (lineNumbers) =>
+      `次の行は有効な設定URLではありません: ${lineNumbers}`,
+    concatBoardTitle: (lineNumber, key, scale) =>
+      `${lineNumber}行目: ${key} ${scale}`,
     tokenError: "Notes は行区切りで12個にしてください。",
     tuningError: "チューニングは1行に1つ、音名とオクターブで指定してください。",
     settingError: "設定エディタには有効な genscale JSON を入力してください。",

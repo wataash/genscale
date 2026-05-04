@@ -16,6 +16,19 @@ export function readableSettingsParam(settings: AppSettings): string {
   );
 }
 
+export function parseSettingsUrl(
+  text: string,
+  baseUrl: string,
+): AppSettings | null {
+  try {
+    const url = new URL(text, baseUrl);
+    const settingsParam = url.searchParams.get("settings");
+    return settingsParam ? parseSettingsText(settingsParam) : null;
+  } catch {
+    return null;
+  }
+}
+
 function readStringArray(value: unknown): string[] | null {
   if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
     return null;

@@ -27,6 +27,7 @@ import {
 } from "@/lib/genscale/scales";
 import {
   parseSettingsText,
+  parseSettingsUrl,
   readableSettingsParam,
   settingsText,
 } from "@/lib/genscale/settings";
@@ -36,7 +37,7 @@ import {
   parseTuning,
   TUNING_PRESETS,
 } from "@/lib/genscale/tuning";
-import type { Locale, NoteTone } from "@/lib/genscale/types";
+import type { AppSettings, Locale, NoteTone } from "@/lib/genscale/types";
 
 type GenscaleAppProps = {
   initialSettingsText?: string;
@@ -44,6 +45,11 @@ type GenscaleAppProps = {
 };
 
 type CopySettingsStatus = "idle" | "copying" | "copied" | "failed";
+type AppMode = "edit" | "concat";
+type ConcatEntry = {
+  lineNumber: number;
+  settings: AppSettings;
+};
 
 const NOTE_GRAY_CONTROLS: { label: string; tone: NoteTone }[] = [
   { label: "NOTE", tone: 0 },
@@ -52,6 +58,191 @@ const NOTE_GRAY_CONTROLS: { label: string; tone: NoteTone }[] = [
   { label: "...NOTE", tone: 3 },
 ];
 const NOTE_GRAY_PREVIEW_TEXT = "Δ7";
+
+type FretboardPreviewProps = {
+  locale: Locale;
+  settings: AppSettings;
+  svgId?: string;
+  title?: string;
+};
+
+function FretboardPreview({
+  locale,
+  settings,
+  svgId,
+  title,
+}: FretboardPreviewProps) {
+  const t = TRANSLATIONS[locale];
+  const parsedTuning = parseTuning(settings.tuning.join("\n"));
+  const board = buildFretboard(parsedTuning.noteIndices);
+  const scale = scaleFromNotes(settings.notes);
+  const scaleName =
+    scale === CUSTOM_SCALE ? t.customScale : scaleDisplayName(scale, locale);
+  const rootKey = NOTE_INDICES[ENHARMONICS[settings.key]];
+  const labels = parseLabels(settings.notes);
+  const boardH = CANVAS.stringGap * (board.noteIndices.length - 1);
+  const nutH = boardH + 30;
+  const labelH = CANVAS.fretLabelFontSize + CANVAS.noteRadius;
+  const canvasW = CANVAS.nutW + CANVAS.boardW;
+  const canvasH = labelH + boardH + labelH;
+  const fretXs = board.normalizedFretPositions.map(
+    (x) => CANVAS.nutW + CANVAS.boardW * x,
+  );
+  const stringYs = board.noteIndices.map(
+    (_, i) => labelH + CANVAS.stringGap * i,
+  );
+  const yMid = (stringYs[0] + stringYs[stringYs.length - 1]) / 2;
+  const stringCount = stringYs.length;
+  const inlayY =
+    stringCount >= 3
+      ? (stringYs[0] + stringYs[1]) / 2
+      : yMid - (boardH * 0.8) / 2;
+  const inlayH =
+    stringCount >= 3
+      ? (stringYs[stringCount - 2] + stringYs[stringCount - 1]) / 2 - inlayY
+      : boardH * 0.8;
+  const inlayW = 8;
+  const octaveInlayW = 13;
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-[#d8d0c2] bg-white shadow-sm">
+      {title ? (
+        <header className="border-b border-[#e6dfd2] px-4 py-3 text-sm font-semibold text-[#4c463e]">
+          {title}
+        </header>
+      ) : null}
+      <div className="overflow-x-auto p-4">
+        <svg
+          id={svgId}
+          aria-label={t.fretboardLabel(settings.key, scaleName)}
+          className="block w-[1008px] max-w-none sm:w-[1440px]"
+          width={canvasW}
+          height={canvasH}
+          viewBox={`0 0 ${canvasW} ${canvasH}`}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <style>{`text{font-family:Arial,sans-serif;}`}</style>
+          <rect
+            x="0"
+            y={(stringYs[0] + stringYs[stringYs.length - 1] - nutH) / 2}
+            width={CANVAS.nutW}
+            height={nutH}
+            fill="#d6cec0"
+          />
+          {fretXs.slice(0, -1).map((x, fretIndex) => (
+            <line
+              key={`fret-${fretIndex}`}
+              x1={x}
+              y1={stringYs[0]}
+              x2={x}
+              y2={stringYs[stringYs.length - 1]}
+              stroke={
+                fretIndex === 12 || fretIndex === 24 ? "#5f6f67" : "#b7ad9d"
+              }
+              strokeWidth={fretIndex === 12 || fretIndex === 24 ? 3 : 1}
+            />
+          ))}
+          {fretXs.slice(0, -1).map((x, fretIndex) => (
+            <g key={`fret-label-${fretIndex}`}>
+              <text
+                x={x}
+                y={labelH / 2 - CANVAS.noteRadius / 2}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill="#948b7d"
+                fontSize={CANVAS.fretLabelFontSize}
+                fontWeight="600"
+              >
+                {fretIndex}
+              </text>
+              <text
+                x={x}
+                y={labelH + boardH + labelH / 2 + CANVAS.noteRadius / 2}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill="#948b7d"
+                fontSize={CANVAS.fretLabelFontSize}
+                fontWeight="600"
+              >
+                {fretIndex}
+              </text>
+            </g>
+          ))}
+          {stringYs.map((y, stringIndex) => (
+            <line
+              key={`string-${stringIndex}`}
+              x1={fretXs[0]}
+              y1={y}
+              x2={fretXs[fretXs.length - 2]}
+              y2={y}
+              stroke="#a59c8f"
+              strokeWidth={1 + stringIndex * 0.25}
+            />
+          ))}
+          {[3, 5, 7, 9, 15, 17, 19, 21].map((fret) => (
+            <rect
+              key={`inlay-${fret}`}
+              x={(fretXs[fret - 1] + fretXs[fret]) / 2 - inlayW / 2}
+              y={inlayY}
+              width={inlayW}
+              height={inlayH}
+              rx="2"
+              fill="#7c8f85"
+            />
+          ))}
+          {[12, 24].map((fret) => (
+            <rect
+              key={`inlay-${fret}`}
+              x={(fretXs[fret - 1] + fretXs[fret]) / 2 - octaveInlayW / 2}
+              y={inlayY}
+              width={octaveInlayW}
+              height={inlayH}
+              rx="2"
+              fill="#7c8f85"
+            />
+          ))}
+          {board.noteIndices.map((stringNoteIndices, stringIndex) =>
+            stringNoteIndices.map((fretNoteIndex, noteIndex) => {
+              const offset = (fretNoteIndex - rootKey + 12) % 12;
+              const note = labels[offset];
+              const colors = noteColors(note.tone, settings.noteGrayLevels);
+              const cx =
+                noteIndex === 0
+                  ? fretXs[0] - CANVAS.nutW / 2
+                  : (fretXs[noteIndex - 1] + fretXs[noteIndex]) / 2;
+              const cy = stringYs[stringIndex];
+
+              return (
+                <g key={`note-${stringIndex}-${noteIndex}`}>
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={CANVAS.noteRadius}
+                    fill={colors.fill}
+                    stroke={colors.stroke}
+                    strokeWidth="1.25"
+                  />
+                  {note.text ? (
+                    <text
+                      x={cx}
+                      y={cy + 4}
+                      textAnchor="middle"
+                      fill={colors.text}
+                      fontSize="16"
+                      fontWeight="700"
+                    >
+                      {note.text}
+                    </text>
+                  ) : null}
+                </g>
+              );
+            }),
+          )}
+        </svg>
+      </div>
+    </section>
+  );
+}
 
 export default function GenscaleApp({
   initialSettingsText,
@@ -79,56 +270,46 @@ export default function GenscaleApp({
   );
   const [copySettingsStatus, setCopySettingsStatus] =
     useState<CopySettingsStatus>("idle");
+  const [mode, setMode] = useState<AppMode>("edit");
+  const [concatText, setConcatText] = useState("");
   const [noteGrayLevels, setNoteGrayLevels] = useState<number[]>([
     ...(initialSettings?.noteGrayLevels ?? DEFAULT_NOTE_GRAY_LEVELS),
   ]);
   const parsedTuning = useMemo(() => parseTuning(tuning), [tuning]);
-  const board = useMemo(
-    () => buildFretboard(parsedTuning.noteIndices),
-    [parsedTuning.noteIndices],
-  );
-  const rootKey = NOTE_INDICES[ENHARMONICS[key]];
   const activeTokens = linesFromText(noteText);
-  const labels = parseLabels(
-    activeTokens.length === 12 ? activeTokens : scaleTokens(scale),
-  );
-
-  const boardH = CANVAS.stringGap * (board.noteIndices.length - 1);
-  const nutH = boardH + 30;
-  const labelH = CANVAS.fretLabelFontSize + CANVAS.noteRadius;
-  const canvasW = CANVAS.nutW + CANVAS.boardW;
-  const canvasH = labelH + boardH + labelH;
-  const fretXs = board.normalizedFretPositions.map(
-    (x) => CANVAS.nutW + CANVAS.boardW * x,
-  );
-  const stringYs = board.noteIndices.map(
-    (_, i) => labelH + CANVAS.stringGap * i,
-  );
-  const yMid = (stringYs[0] + stringYs[stringYs.length - 1]) / 2;
   const tokenValid = activeTokens.length === 12;
-  const stringCount = stringYs.length;
-  const inlayY =
-    stringCount >= 3
-      ? (stringYs[0] + stringYs[1]) / 2
-      : yMid - (boardH * 0.8) / 2;
-  const inlayH =
-    stringCount >= 3
-      ? (stringYs[stringCount - 2] + stringYs[stringCount - 1]) / 2 - inlayY
-      : boardH * 0.8;
-  const inlayW = 8;
-  const octaveInlayW = 13;
   const tuningPresetId =
     TUNING_PRESETS.find((preset) => preset.notes.join("\n") === tuning)?.id ??
     "custom";
-  const currentScaleDisplayName =
-    scale === CUSTOM_SCALE ? t.customScale : scaleDisplayName(scale, locale);
-  const currentSettings = {
+  const currentSettings: AppSettings = {
     key,
     tuning: linesFromText(tuning),
     notes: linesFromText(noteText),
     noteGrayLevels,
   };
+  const currentBoardSettings: AppSettings = {
+    ...currentSettings,
+    notes: tokenValid ? currentSettings.notes : scaleTokens(scale),
+  };
   const currentSettingEditorText = settingsText(currentSettings);
+  const concatResults = useMemo(() => {
+    const baseUrl =
+      typeof window === "undefined" ? "https://example.com" : window.location.origin;
+    const valid: ConcatEntry[] = [];
+    const invalid: number[] = [];
+
+    linesFromText(concatText).forEach((line, index) => {
+      const settings = parseSettingsUrl(line, baseUrl);
+      if (settings) {
+        valid.push({ lineNumber: index + 1, settings });
+        return;
+      }
+
+      invalid.push(index + 1);
+    });
+
+    return { valid, invalid };
+  }, [concatText]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -220,13 +401,15 @@ export default function GenscaleApp({
                 <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.29 9.41 7.86 10.93.58.1.79-.25.79-.56v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.16 1.18A10.9 10.9 0 0 1 12 6.06c.98 0 1.95.13 2.87.38 2.19-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.75.11 3.04.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.79.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
               </svg>
             </a>
-            <button
-              className="h-10 rounded-md bg-[#2d4f47] px-4 text-sm font-semibold text-white transition hover:bg-[#213d37]"
-              type="button"
-              onClick={downloadSvg}
-            >
-              {t.exportSvg}
-            </button>
+            {mode === "edit" ? (
+              <button
+                className="h-10 rounded-md bg-[#2d4f47] px-4 text-sm font-semibold text-white transition hover:bg-[#213d37]"
+                type="button"
+                onClick={downloadSvg}
+              >
+                {t.exportSvg}
+              </button>
+            ) : null}
             <nav
               aria-label={t.localeLabel}
               className="flex h-10 items-center rounded-md border border-[#c9bda9] bg-white p-1 text-sm font-semibold"
@@ -257,9 +440,43 @@ export default function GenscaleApp({
           </div>
         </header>
 
-        <div className="grid gap-4">
-          <aside className="order-2 rounded-lg border border-[#d8d0c2] bg-white p-4 shadow-sm">
-            <div className="grid gap-4">
+        <div
+          aria-label={t.modeTabsLabel}
+          className="inline-flex w-fit rounded-lg border border-[#c9bda9] bg-white p-1 text-sm font-semibold"
+          role="tablist"
+        >
+          {([
+            ["edit", t.editMode],
+            ["concat", t.concatMode],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              aria-controls={`${value}-panel`}
+              aria-selected={mode === value}
+              className={`rounded px-3 py-2 transition ${
+                mode === value
+                  ? "bg-[#2d4f47] text-white"
+                  : "text-[#4c463e] hover:bg-[#eee8dc]"
+              }`}
+              id={`${value}-tab`}
+              role="tab"
+              type="button"
+              onClick={() => setMode(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {mode === "edit" ? (
+          <div
+            aria-labelledby="edit-tab"
+            className="grid gap-4"
+            id="edit-panel"
+            role="tabpanel"
+          >
+            <aside className="order-2 rounded-lg border border-[#d8d0c2] bg-white p-4 shadow-sm">
+              <div className="grid gap-4">
               <div className="grid gap-2 text-sm font-semibold">
                 <span>
                   {t.key} / {t.scale}
@@ -462,143 +679,68 @@ export default function GenscaleApp({
                         : t.copySettingsUrl}
                 </span>
               </button>
-            </div>
-          </aside>
+              </div>
+            </aside>
 
-          <section className="order-1 overflow-hidden rounded-lg border border-[#d8d0c2] bg-white shadow-sm">
-            <div className="overflow-x-auto p-4">
-              <svg
-                id="fretboard-svg"
-                aria-label={t.fretboardLabel(key, currentScaleDisplayName)}
-                className="block w-[1008px] max-w-none sm:w-[1440px]"
-                width={canvasW}
-                height={canvasH}
-                viewBox={`0 0 ${canvasW} ${canvasH}`}
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <style>{`text{font-family:Arial,sans-serif;}`}</style>
-                <rect
-                  x="0"
-                  y={(stringYs[0] + stringYs[stringYs.length - 1] - nutH) / 2}
-                  width={CANVAS.nutW}
-                  height={nutH}
-                  fill="#d6cec0"
+            <FretboardPreview
+              locale={locale}
+              settings={currentBoardSettings}
+              svgId="fretboard-svg"
+            />
+          </div>
+        ) : (
+          <section
+            aria-labelledby="concat-tab"
+            className="grid gap-4"
+            id="concat-panel"
+            role="tabpanel"
+          >
+            <section className="rounded-lg border border-[#d8d0c2] bg-white p-4 shadow-sm">
+              <label className="grid gap-2 text-sm font-semibold">
+                {t.concatInput}
+                <textarea
+                  aria-label={t.concatInput}
+                  className="min-h-56 resize-y rounded-md border border-[#c9bda9] bg-white p-3 font-mono text-sm leading-6"
+                  placeholder={t.concatHelp}
+                  spellCheck={false}
+                  value={concatText}
+                  onChange={(event) => setConcatText(event.target.value)}
                 />
-                {fretXs.slice(0, -1).map((x, fretIndex) => (
-                  <line
-                    key={`fret-${fretIndex}`}
-                    x1={x}
-                    y1={stringYs[0]}
-                    x2={x}
-                    y2={stringYs[stringYs.length - 1]}
-                    stroke={
-                      fretIndex === 12 || fretIndex === 24
-                        ? "#5f6f67"
-                        : "#b7ad9d"
-                    }
-                    strokeWidth={fretIndex === 12 || fretIndex === 24 ? 3 : 1}
-                  />
-                ))}
-                {fretXs.slice(0, -1).map((x, fretIndex) => (
-                  <g key={`fret-label-${fretIndex}`}>
-                    <text
-                      x={x}
-                      y={labelH / 2 - CANVAS.noteRadius / 2}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fill="#948b7d"
-                      fontSize={CANVAS.fretLabelFontSize}
-                      fontWeight="600"
-                    >
-                      {fretIndex}
-                    </text>
-                    <text
-                      x={x}
-                      y={labelH + boardH + labelH / 2 + CANVAS.noteRadius / 2}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fill="#948b7d"
-                      fontSize={CANVAS.fretLabelFontSize}
-                      fontWeight="600"
-                    >
-                      {fretIndex}
-                    </text>
-                  </g>
-                ))}
-                {stringYs.map((y, stringIndex) => (
-                  <line
-                    key={`string-${stringIndex}`}
-                    x1={fretXs[0]}
-                    y1={y}
-                    x2={fretXs[fretXs.length - 2]}
-                    y2={y}
-                    stroke="#a59c8f"
-                    strokeWidth={1 + stringIndex * 0.25}
-                  />
-                ))}
-                {[3, 5, 7, 9, 15, 17, 19, 21].map((fret) => (
-                  <rect
-                    key={`inlay-${fret}`}
-                    x={(fretXs[fret - 1] + fretXs[fret]) / 2 - inlayW / 2}
-                    y={inlayY}
-                    width={inlayW}
-                    height={inlayH}
-                    rx="2"
-                    fill="#7c8f85"
-                  />
-                ))}
-                {[12, 24].map((fret) => (
-                  <rect
-                    key={`inlay-${fret}`}
-                    x={(fretXs[fret - 1] + fretXs[fret]) / 2 - octaveInlayW / 2}
-                    y={inlayY}
-                    width={octaveInlayW}
-                    height={inlayH}
-                    rx="2"
-                    fill="#7c8f85"
-                  />
-                ))}
-                {board.noteIndices.map((stringNoteIndices, stringIndex) =>
-                  stringNoteIndices.map((fretNoteIndex, noteIndex) => {
-                    const offset = (fretNoteIndex - rootKey + 12) % 12;
-                    const note = labels[offset];
-                    const colors = noteColors(note.tone, noteGrayLevels);
-                    const cx =
-                      noteIndex === 0
-                        ? fretXs[0] - CANVAS.nutW / 2
-                        : (fretXs[noteIndex - 1] + fretXs[noteIndex]) / 2;
-                    const cy = stringYs[stringIndex];
+              </label>
 
-                    return (
-                      <g key={`note-${stringIndex}-${noteIndex}`}>
-                        <circle
-                          cx={cx}
-                          cy={cy}
-                          r={CANVAS.noteRadius}
-                          fill={colors.fill}
-                          stroke={colors.stroke}
-                          strokeWidth="1.25"
-                        />
-                        {note.text ? (
-                          <text
-                            x={cx}
-                            y={cy + 4}
-                            textAnchor="middle"
-                            fill={colors.text}
-                            fontSize="16"
-                            fontWeight="700"
-                          >
-                            {note.text}
-                          </text>
-                        ) : null}
-                      </g>
-                    );
-                  }),
-                )}
-              </svg>
-            </div>
+              <p className="mt-3 text-sm text-[#5f584f]">{t.concatHelp}</p>
+
+              {concatResults.invalid.length ? (
+                <p className="mt-3 rounded-md bg-[#fff4df] px-3 py-2 text-sm text-[#7a4f00]">
+                  {t.concatInvalidLines(concatResults.invalid.join(", "))}
+                </p>
+              ) : null}
+            </section>
+
+            {concatResults.valid.length ? (
+              concatResults.valid.map(({ lineNumber, settings }) => {
+                const boardScale = scaleFromNotes(settings.notes);
+                const scaleName =
+                  boardScale === CUSTOM_SCALE
+                    ? t.customScale
+                    : scaleDisplayName(boardScale, locale);
+
+                return (
+                  <FretboardPreview
+                    key={`${lineNumber}-${settings.key}-${settings.tuning.join("-")}`}
+                    locale={locale}
+                    settings={settings}
+                    title={t.concatBoardTitle(lineNumber, settings.key, scaleName)}
+                  />
+                );
+              })
+            ) : (
+              <p className="rounded-lg border border-dashed border-[#c9bda9] bg-white px-4 py-6 text-sm text-[#5f584f] shadow-sm">
+                {t.concatEmpty}
+              </p>
+            )}
           </section>
-        </div>
+        )}
       </section>
     </main>
   );

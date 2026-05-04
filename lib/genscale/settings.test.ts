@@ -5,6 +5,7 @@ import { describe, expect, test } from "vitest";
 
 import {
   parseSettingsText,
+  parseSettingsUrl,
   readableSettingsParam,
   settingsText,
 } from "./settings";
@@ -76,5 +77,32 @@ describe("parseSettingsText", () => {
     expect(
       parseSettingsText(JSON.stringify({ ...settings, noteGrayLevels: [20, 40] })),
     ).toBeNull();
+  });
+});
+
+describe("parseSettingsUrl", () => {
+  test("reads settings from copied absolute and relative URLs", () => {
+    const param = readableSettingsParam(settings);
+
+    expect(
+      parseSettingsUrl(
+        `https://example.com/en?settings=${param}`,
+        "https://example.com",
+      ),
+    ).toEqual(settings);
+    expect(parseSettingsUrl(`/ja?settings=${param}`, "https://example.com")).toEqual(
+      settings,
+    );
+  });
+
+  test("rejects urls without valid settings", () => {
+    expect(parseSettingsUrl("https://example.com/en", "https://example.com")).toBeNull();
+    expect(
+      parseSettingsUrl(
+        "https://example.com/en?settings={",
+        "https://example.com",
+      ),
+    ).toBeNull();
+    expect(parseSettingsUrl("not a url", "://invalid")).toBeNull();
   });
 });

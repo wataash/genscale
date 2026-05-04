@@ -3,6 +3,14 @@
 
 import { expect, test } from "@playwright/test";
 
+import { scaleTokens } from "../lib/genscale/scales";
+import { readableSettingsParam } from "../lib/genscale/settings";
+import type { AppSettings } from "../lib/genscale/types";
+
+function copiedSettingsUrl(settings: AppSettings, locale = "en") {
+  return `http://localhost:3000/${locale}?settings=${readableSettingsParam(settings)}`;
+}
+
 test("renders the guitar scale board", async ({ page }) => {
   await page.goto("/en");
 
@@ -12,6 +20,43 @@ test("renders the guitar scale board", async ({ page }) => {
   await expect(
     page.getByLabel("A m7 guitar scale fretboard"),
   ).toBeVisible();
+});
+
+test("switches to concat mode and renders one fretboard per pasted URL", async ({
+  page,
+}) => {
+  await page.goto("/en");
+
+  const firstSettings: AppSettings = {
+    key: "C",
+    tuning: ["E4", "B3", "G3", "D3", "A2", "E2"],
+    notes: scaleTokens("M"),
+    noteGrayLevels: [20, 40, 75, 100],
+  };
+  const secondSettings: AppSettings = {
+    key: "D",
+    tuning: ["E4", "B3", "G3", "D3", "A2", "E2"],
+    notes: scaleTokens("alt"),
+    noteGrayLevels: [20, 40, 75, 100],
+  };
+
+  await page.getByRole("tab", { name: "concat mode" }).click();
+  await page.getByLabel("Copied settings URLs").fill(
+    [
+      copiedSettingsUrl(firstSettings),
+      "not a copied settings url",
+      copiedSettingsUrl(secondSettings),
+    ].join("\n"),
+  );
+
+  await expect(
+    page.getByText(
+      "These lines do not contain valid copied settings URLs: 2.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.getByLabel("C Major guitar scale fretboard")).toBeVisible();
+  await expect(page.getByLabel("D Altered guitar scale fretboard")).toBeVisible();
 });
 
 test("updates the fretboard label when key and scale change", async ({ page }) => {
