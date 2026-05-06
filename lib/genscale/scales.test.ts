@@ -37,7 +37,7 @@ describe("scale presets", () => {
   });
 
   test("shows formal names while keeping compact identifiers", () => {
-    expect(scaleDisplayName("alt", "en")).toBe("Altered");
+    expect(scaleDisplayName("alt", "en")).toBe("Altered dominant");
     expect(scaleDisplayName("alt", "ja")).toBe("オルタード");
     expect(scaleDisplayName("unknown", "en")).toBe("unknown");
   });
